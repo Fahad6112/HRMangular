@@ -1,0 +1,172 @@
+<nav class="navbar navbar-expand-sm navbar-dark">
+    <div class="container-fluid">
+        
+        <a class="navbar-brand">HRMApp</a>
+
+        <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
+
+            <!-- Profile Button -->
+            <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
+                @if (profileImage) {
+                    <img
+                        [src]="apiUrl + profileImage"
+                        class="profile-img"
+                        alt="Profile"/>
+                } @else {
+                    <div class="profile-placeholder">
+                        {{ email.charAt(0).toUpperCase() }}
+                    </div>
+                }
+            </div>
+
+            <!-- Popup Menu -->
+            @if (showMenu) {
+                <div class="profile-menu" (click)="$event.stopPropagation()">
+                    <div class="profile-menu-header">
+                        @if (profileImage) {
+                            <img
+                                [src]="apiUrl + profileImage"
+                                class="menu-profile-img"
+                                alt="Profile"/>
+                        } @else {
+                            <div class="menu-profile-placeholder">
+                                {{ email.charAt(0).toUpperCase() }}
+                            </div>
+                        }
+                        <div>
+                            <p class="menu-name">{{ fullName }}</p>
+                            <p class="menu-email">{{ email }}</p>
+                        </div>
+                    </div>
+
+                    <hr class="menu-divider"/>
+
+                    <div class="menu-item" (click)="openEditProfile()">
+                        ✏️ Edit Profile
+                    </div>
+                    <div class="menu-item" (click)="openChangePassword()">
+                        🔒 Change Password
+                    </div>
+                    <div class="menu-item text-danger" (click)="logout()">
+                        🚪 Logout
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</nav>
+
+<!-- Click-outside overlay for profile menu -->
+@if (showMenu) {
+    <div class="click-outside-overlay" (click)="showMenu = false"></div>
+}
+
+<div class="container mt-5">
+    <div class="card shadow p-4 text-center">
+        <h2>Welcome! 👋</h2>
+        <p class="text-muted">You are logged in as <strong>{{ email }}</strong></p>
+    </div>
+</div>
+
+<!-- Edit Profile Popup -->
+@if (showEditProfile) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Edit Profile</h4>
+
+            <div class="alert alert-danger" *ngIf="errorMessage">
+                {{ errorMessage }}
+            </div>
+            <div class="alert alert-success" *ngIf="successMessage">
+                {{ successMessage }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="editFullName"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Profile Image</label>
+                <input
+                    type="file"
+                    class="form-control"
+                    accept="image/*"
+                    (change)="onImageSelected($event)"/>
+            </div>
+
+            @if (imagePreview) {
+                <div class="text-center mb-3">
+                    <img
+                        [src]="imagePreview"
+                        class="preview-img"
+                        alt="Preview"/>
+                </div>
+            }
+
+            <button
+                class="btn btn-success w-100"
+                (click)="updateProfile()"
+                [disabled]="updating">
+                {{ updating ? 'Saving...' : 'Save Changes' }}
+            </button>
+
+            <button
+                class="btn btn-secondary w-100 mt-2"
+                (click)="closeModals()">
+                Cancel
+            </button>
+        </div>
+    </div>
+}
+
+<!-- Change Password Popup -->
+@if (showChangePassword) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Change Password</h4>
+
+            <div class="alert alert-danger" *ngIf="errorMessage">
+                {{ errorMessage }}
+            </div>
+            <div class="alert alert-success" *ngIf="successMessage">
+                {{ successMessage }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">New Password</label>
+                <input
+                    type="password"
+                    class="form-control"
+                    [(ngModel)]="newPassword"
+                    placeholder="Enter new password"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Confirm New Password</label>
+                <input
+                    type="password"
+                    class="form-control"
+                    [(ngModel)]="confirmNewPassword"
+                    placeholder="Confirm new password"/>
+            </div>
+
+            <button
+                class="btn btn-success w-100"
+                (click)="changePassword()"
+                [disabled]="updating">
+                {{ updating ? 'Changing...' : 'Change Password' }}
+            </button>
+
+            <button
+                class="btn btn-secondary w-100 mt-2"
+                (click)="closeModals()">
+                Cancel
+            </button>
+        </div>
+    </div>
+}

@@ -1,0 +1,88 @@
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Register</h2>
+
+                    <div class="alert alert-danger" *ngIf="errorMessage">
+                        {{ errorMessage }}
+                    </div>
+
+                    <div class="alert alert-success" *ngIf="successMessage">
+                        {{ successMessage }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            [(ngModel)]="name"
+                            placeholder="Enter full name"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input
+                            type="email"
+                            class="form-control"
+                            [(ngModel)]="email"
+                            placeholder="Enter email"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input
+                            type="password"
+                            class="form-control"
+                            [(ngModel)]="password"
+                            placeholder="Enter password"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password</label>
+                        <input
+                            type="password"
+                            class="form-control"
+                            [(ngModel)]="confirmPassword"
+                            placeholder="Confirm password"/>
+                    </div>
+
+                    <!-- ✅ Profile Image Upload -->
+                    <div class="mb-3">
+                    <label class="form-label">Profile Image <span class="text-danger">*</span></label>
+                     <input
+                     type="file"
+                     class="form-control"
+                     accept="image/*"
+                    (change)="onImageSelected($event)"/>
+                     <small class="text-danger" *ngIf="imageError">{{ imageError }}</small>
+                    </div>
+
+                    <!-- ✅ Image Preview -->
+                    @if (imagePreview) {
+                        <div class="text-center mb-3">
+                            <img
+                                [src]="imagePreview"
+                                class="profile-preview"
+                                alt="Preview"/>
+                        </div>
+                    }
+
+                    <button
+                        class="btn btn-success w-100"
+                        (click)="register()"
+                        [disabled]="loading">
+                        {{ loading ? 'Registering...' : 'Register' }}
+                    </button>
+
+                    <p class="text-center mt-3">
+                        Already have an account?
+                        <a routerLink="/login">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

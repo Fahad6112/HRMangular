@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "de8ceb02-1877-4293-8971-067d72331ea0"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -25,16 +26,15 @@
               }
             ],
             "styles": [
-              "src/styles.css"
-            ],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
+    "node_modules/bootstrap/dist/css/bootstrap.min.css",
+    "src/styles.css"
+],
+"scripts": [
+    "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+],
             "security": {
-              "allowedHosts": []
-            },
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+    "allowedHosts": []
+}
           },
           "configurations": {
             "production": {

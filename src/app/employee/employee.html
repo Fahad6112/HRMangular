@@ -1,0 +1,408 @@
+<nav class="navbar navbar-expand-sm navbar-dark">
+    <div class="container-fluid">
+        <!-- Hamburger Menu Button -->
+        <button class="menu-toggle-btn" (click)="toggleSidebar(); $event.stopPropagation()">
+            <span class="menu-bar"></span>
+            <span class="menu-bar"></span>
+            <span class="menu-bar"></span>
+        </button>
+
+        <a class="navbar-brand">HRMApp - Employees</a>
+
+        <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
+            <!-- Profile Button -->
+            <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
+                @if (profileImage) {
+                    <img
+                        [src]="apiUrl + profileImage"
+                        class="profile-img"
+                        alt="Profile"/>
+                } @else {
+                    <div class="profile-placeholder">
+                        {{ email.charAt(0).toUpperCase() }}
+                    </div>
+                }
+            </div>
+
+            <!-- Popup Menu -->
+            @if (showMenu) {
+                <div class="profile-menu" (click)="$event.stopPropagation()">
+                    <div class="profile-menu-header">
+                        @if (profileImage) {
+                            <img
+                                [src]="apiUrl + profileImage"
+                                class="menu-profile-img"
+                                alt="Profile"/>
+                        } @else {
+                            <div class="menu-profile-placeholder">
+                                {{ email.charAt(0).toUpperCase() }}
+                            </div>
+                        }
+                        <div>
+                            <p class="menu-name">{{ fullName }}</p>
+                            <p class="menu-email">{{ email }}</p>
+                        </div>
+                    </div>
+
+                    <hr class="menu-divider"/>
+
+                    <div class="menu-item" (click)="logout()">
+                        🚪 Logout
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</nav>
+
+<!-- Click-outside overlay for profile menu -->
+@if (showMenu) {
+    <div class="click-outside-overlay" (click)="showMenu = false"></div>
+}
+
+<!-- Sidebar Overlay -->
+@if (showSidebar) {
+    <div class="sidebar-overlay" (click)="showSidebar = false"></div>
+}
+
+<!-- Sidebar -->
+<div class="sidebar" [class.sidebar-open]="showSidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">📋 Menu</span>
+        <button class="sidebar-close-btn" (click)="showSidebar = false">✕</button>
+    </div>
+
+    <nav class="sidebar-menu">
+        <div class="sidebar-item"
+             (click)="goToAdmin(); showSidebar = false">
+            <span class="sidebar-icon">👥</span>
+            <span class="sidebar-label">User Dashboard</span>
+        </div>
+        <div class="sidebar-item sidebar-item-active"
+             (click)="goToEmployees(); showSidebar = false">
+            <span class="sidebar-icon">👨‍💼</span>
+            <span class="sidebar-label">Employee Dashboard</span>
+        </div>
+    </nav>
+</div>
+
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>👨‍💼 Employee Management</h2>
+        <button class="btn btn-add" (click)="openAddModal()">
+            + Add Employee
+        </button>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+    <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text">🔍</span>
+                <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search by name, email, designation..."
+                    [(ngModel)]="searchText"
+                    (input)="onSearch()"/>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select
+                class="form-select"
+                [(ngModel)]="selectedDepartmentId"
+                (change)="onDepartmentFilter()">
+                <option value="">All Departments</option>
+                @for (dept of departments; track dept.id) {
+                    <option [value]="dept.id">{{ dept.name }}</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <button
+                class="btn"
+                [class.btn-primary]="currentStatus === 'active'"
+                [class.btn-outline-primary]="currentStatus !== 'active'"
+                (click)="filterByStatus('active')">
+                ✅ Active
+            </button>
+            <button
+                class="btn"
+                [class.btn-danger]="currentStatus === 'inactive'"
+                [class.btn-outline-danger]="currentStatus !== 'inactive'"
+                (click)="filterByStatus('inactive')">
+                ❌ Inactive
+            </button>
+            <button
+                class="btn btn-outline-secondary"
+                (click)="filterByStatus('all')">
+                👥 All
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    @if (loading) {
+        <div class="text-center mt-5">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    } @else {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Department</th>
+                        <th>Designation</th>
+                        <th>Salary</th>
+                        <th>Joining Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (emp of employees; track emp.id) {
+                        <tr [class.inactive-row]="!emp.isActive">
+                            <td>{{ (currentPage - 1) * pageSize + $index + 1 }}</td>
+                            <td>
+                                @if (emp.photo) {
+                                    <img
+                                        [src]="apiUrl + emp.photo"
+                                        class="table-photo"
+                                        alt="Photo"/>
+                                } @else {
+                                    <div class="table-photo-placeholder">
+                                        {{ emp.name.charAt(0).toUpperCase() }}
+                                    </div>
+                                }
+                            </td>
+                            <td>{{ emp.name }}</td>
+                            <td>{{ emp.email }}</td>
+                            <td>{{ emp.phone }}</td>
+                            <td>
+                                <span class="dept-badge">
+                                    {{ emp.departmentName }}
+                                </span>
+                            </td>
+                            <td>{{ emp.designation }}</td>
+                            <td>{{ emp.salary | currency }}</td>
+                            <td>{{ emp.joiningDate | date:'dd MMM yyyy' }}</td>
+                            <td>
+                                @if (emp.isActive) {
+                                    <span class="badge bg-success">Active</span>
+                                } @else {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <button
+                                    class="btn btn-info btn-sm me-1"
+                                    (click)="openViewModal(emp)">
+                                    View
+                                </button>
+                                <button
+                                    class="btn btn-warning btn-sm me-1"
+                                    (click)="openEditModal(emp)">
+                                    Edit
+                                </button>
+                                @if (emp.isActive) {
+                                    <button
+                                        class="btn btn-secondary btn-sm me-1"
+                                        (click)="deactivate(emp.id)">
+                                        Deactivate
+                                    </button>
+                                } @else {
+                                    <button
+                                        class="btn btn-success btn-sm me-1"
+                                        (click)="restore(emp.id)">
+                                        Restore
+                                    </button>
+                                }
+                                <button
+                                    class="btn btn-danger btn-sm"
+                                    (click)="delete(emp.id)">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <p class="text-muted mb-0">
+                Showing {{ (currentPage - 1) * pageSize + 1 }}
+                to {{ Math.min(currentPage * pageSize, totalEmployees) }}
+                of {{ totalEmployees }} employees
+            </p>
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item" [class.disabled]="currentPage === 1">
+                        <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+                    </li>
+                    @for (page of getPages(); track page) {
+                        <li class="page-item" [class.active]="page === currentPage">
+                            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                        </li>
+                    }
+                    <li class="page-item" [class.disabled]="currentPage === totalPages">
+                        <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+<!-- Add/Edit Employee Modal -->
+@if (showFormModal) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box large" (click)="$event.stopPropagation()">
+            <h4 class="mb-4">{{ isEditing ? '✏️ Edit Employee' : '➕ Add Employee' }}</h4>
+
+            <div class="alert alert-danger" *ngIf="formError">{{ formError }}</div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" class="form-control" [(ngModel)]="form.name" placeholder="Enter full name"/>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Email *</label>
+                    <input type="email" class="form-control" [(ngModel)]="form.email" placeholder="Enter email"/>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Phone *</label>
+                    <input type="text" class="form-control" [(ngModel)]="form.phone" placeholder="Enter phone"/>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Department *</label>
+                    <select class="form-select" [(ngModel)]="form.departmentId">
+                        <option value="">Select Department</option>
+                        @for (dept of departments; track dept.id) {
+                            <option [value]="dept.id">{{ dept.name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Designation *</label>
+                    <select class="form-select" [(ngModel)]="form.designation">
+                        <option value="">Select Designation</option>
+                        @for (desig of designations; track desig) {
+                            <option [value]="desig">{{ desig }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Salary *</label>
+                    <input type="number" class="form-control" [(ngModel)]="form.salary" placeholder="Enter salary"/>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Joining Date *</label>
+                    <input type="date" class="form-control" [(ngModel)]="form.joiningDate"/>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Photo</label>
+                    <input
+                        type="file"
+                        class="form-control"
+                        accept="image/*"
+                        (change)="onPhotoSelected($event)"/>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Address *</label>
+                    <textarea class="form-control" [(ngModel)]="form.address" rows="2" placeholder="Enter address"></textarea>
+                </div>
+            </div>
+
+            @if (photoPreview) {
+                <div class="text-center mb-3">
+                    <img [src]="photoPreview" class="preview-img" alt="Preview"/>
+                </div>
+            }
+
+            <div class="d-flex gap-2">
+                <button
+                    class="btn btn-success flex-grow-1"
+                    (click)="saveEmployee()"
+                    [disabled]="saving">
+                    {{ saving ? 'Saving...' : (isEditing ? 'Update' : 'Add Employee') }}
+                </button>
+                <button class="btn btn-secondary flex-grow-1" (click)="closeModals()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- View Employee Modal -->
+@if (showViewModal && selectedEmployee) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-4">👨‍💼 Employee Details</h4>
+
+            <div class="text-center mb-4">
+                @if (selectedEmployee.photo) {
+                    <img
+                        [src]="apiUrl + selectedEmployee.photo"
+                        class="view-photo"
+                        alt="Photo"/>
+                } @else {
+                    <div class="view-photo-placeholder">
+                        {{ selectedEmployee.name.charAt(0).toUpperCase() }}
+                    </div>
+                }
+                <h5 class="mt-2">{{ selectedEmployee.name }}</h5>
+                <p class="text-muted">{{ selectedEmployee.designation }}</p>
+            </div>
+
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value">{{ selectedEmployee.email }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Phone</span>
+                    <span class="detail-value">{{ selectedEmployee.phone }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Department</span>
+                    <span class="detail-value">{{ selectedEmployee.departmentName }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Salary</span>
+                    <span class="detail-value">{{ selectedEmployee.salary | currency }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Joining Date</span>
+                    <span class="detail-value">{{ selectedEmployee.joiningDate | date:'dd MMM yyyy' }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value">
+                        {{ selectedEmployee.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+                <div class="detail-item full-width">
+                    <span class="detail-label">Address</span>
+                    <span class="detail-value">{{ selectedEmployee.address }}</span>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary w-100 mt-3" (click)="closeModals()">
+                Close
+            </button>
+        </div>
+    </div>
+}
