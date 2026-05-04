@@ -93,146 +93,343 @@
 </div>
 
 <div class="container-fluid mt-4 px-4">
-    <h2 class="mb-4">👥 User Management</h2>
-
-    <!-- Alerts -->
-    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
-    <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
-
-    <!-- Search and Filter -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="input-group">
-                <span class="input-group-text">🔍</span>
-                <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Search by name or email..."
-                    [(ngModel)]="searchText"
-                    (input)="onSearch()"/>
-            </div>
+    <!-- Admin Tabs -->
+    <div class="card shadow">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <button class="nav-link" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'; onTabChange('users')">
+                        👥 User Management
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" [class.active]="activeTab === 'tasks'" (click)="activeTab = 'tasks'; onTabChange('tasks')">
+                        📋 Task Management
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" [class.active]="activeTab === 'leaves'" (click)="activeTab = 'leaves'; onTabChange('leaves')">
+                        📅 Leave Requests
+                        <span class="badge bg-danger ms-1" *ngIf="pendingLeavesCount > 0">{{ pendingLeavesCount }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" [class.active]="activeTab === 'attendance'" (click)="activeTab = 'attendance'; onTabChange('attendance')">
+                        📊 Attendance Overview
+                    </button>
+                </li>
+            </ul>
         </div>
-        <div class="col-md-6 d-flex justify-content-end gap-2">
-            <button
-                class="btn"
-                [class.btn-primary]="currentStatus === 'active'"
-                [class.btn-outline-primary]="currentStatus !== 'active'"
-                (click)="filterByStatus('active')">
-                ✅ Active Users
-            </button>
-            <button
-                class="btn"
-                [class.btn-danger]="currentStatus === 'inactive'"
-                [class.btn-outline-danger]="currentStatus !== 'inactive'"
-                (click)="filterByStatus('inactive')">
-                ❌ Inactive Users
-            </button>
-            <button
-                class="btn btn-outline-secondary"
-                (click)="filterByStatus('all')">
-                👥 All Users
-            </button>
+        <div class="card-body">
+            
+            <!-- ==================== USERS TAB ==================== -->
+            <div *ngIf="activeTab === 'users'">
+                <h2 class="mb-4">👥 User Management</h2>
+
+                <!-- Alerts -->
+                <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+                <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+                <!-- Search and Filter -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">🔍</span>
+                            <input
+                                type="text"
+                                class="form-control"
+                                placeholder="Search by name or email..."
+                                [(ngModel)]="searchText"
+                                (input)="onSearch()"/>
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-end gap-2">
+                        <button
+                            class="btn"
+                            [class.btn-primary]="currentStatus === 'active'"
+                            [class.btn-outline-primary]="currentStatus !== 'active'"
+                            (click)="filterByStatus('active')">
+                            ✅ Active Users
+                        </button>
+                        <button
+                            class="btn"
+                            [class.btn-danger]="currentStatus === 'inactive'"
+                            [class.btn-outline-danger]="currentStatus !== 'inactive'"
+                            (click)="filterByStatus('inactive')">
+                            ❌ Inactive Users
+                        </button>
+                        <button
+                            class="btn btn-outline-secondary"
+                            (click)="filterByStatus('all')">
+                            👥 All Users
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                @if (loading) {
+                    <div class="text-center mt-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                } @else {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Image</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (user of users; track user.id) {
+                                    <tr [class.inactive-row]="!user.isActive">
+                                        <td>{{ (currentPage - 1) * pageSize + $index + 1 }}</td>
+                                        <td>
+                                            @if (user.profileImage) {
+                                                <img
+                                                    [src]="apiUrl + user.profileImage"
+                                                    class="table-profile-img"
+                                                    alt="Profile"/>
+                                            } @else {
+                                                <div class="table-profile-placeholder">
+                                                    {{ user.fullName.charAt(0).toUpperCase() }}
+                                                </div>
+                                            }
+                                        </td>
+                                        <td>{{ user.fullName }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td>
+                                            @if (user.isActive) {
+                                                <span class="badge bg-success">Active</span>
+                                            } @else {
+                                                <span class="badge bg-danger">Inactive</span>
+                                            }
+                                        </td>
+                                        <td>{{ user.createdAt | date:'dd MMM yyyy' }}</td>
+                                        <td>
+                                            @if (user.isActive) {
+                                                <button
+                                                    class="btn btn-warning btn-sm me-1"
+                                                    (click)="deactivateUser(user.id)">
+                                                    Deactivate
+                                                </button>
+                                            } @else {
+                                                <button
+                                                    class="btn btn-success btn-sm me-1"
+                                                    (click)="restoreUser(user.id)">
+                                                    Restore
+                                                </button>
+                                            }
+                                            <button
+                                                class="btn btn-danger btn-sm"
+                                                (click)="deleteUser(user.id)">
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <p class="text-muted mb-0">
+                            Showing {{ (currentPage - 1) * pageSize + 1 }}
+                            to {{ Math.min(currentPage * pageSize, totalUsers) }}
+                            of {{ totalUsers }} users
+                        </p>
+
+                        <nav>
+                            <ul class="pagination mb-0">
+                                <li class="page-item" [class.disabled]="currentPage === 1">
+                                    <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+                                </li>
+
+                                @for (page of getPages(); track page) {
+                                    <li class="page-item" [class.active]="page === currentPage">
+                                        <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                                    </li>
+                                }
+
+                                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                    <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </div>
+
+            <!-- ==================== TASKS TAB ==================== -->
+            <div *ngIf="activeTab === 'tasks'">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">📋 Task Management</h2>
+                    <button class="btn btn-primary" (click)="openAssignTaskModal()">
+                        + Assign New Task
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Employee</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Assigned Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let task of adminTasks">
+                                <td>{{ task.employee?.name || task.employeeName }}</td>
+                                <td>{{ task.title }}</td>
+                                <td>{{ task.description }}</td>
+                                <td>
+                                    <span class="badge" 
+                                          [class.bg-danger]="task.priority === 'Urgent'"
+                                          [class.bg-warning]="task.priority === 'High'"
+                                          [class.bg-info]="task.priority === 'Medium'"
+                                          [class.bg-secondary]="task.priority === 'Low'">
+                                        {{ task.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" 
+                                          [class.bg-warning]="task.status === 'Pending'"
+                                          [class.bg-primary]="task.status === 'InProgress'"
+                                          [class.bg-success]="task.status === 'Completed'">
+                                        {{ task.status }}
+                                    </span>
+                                </td>
+                                <td [class.text-danger]="isTaskOverdue(task.dueDate)">
+                                    {{ task.dueDate | date:'dd MMM yyyy' }}
+                                    <span *ngIf="isTaskOverdue(task.dueDate)" class="badge bg-danger ms-1">Overdue</span>
+                                </td>
+                                <td>{{ task.assignedDate | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" (click)="deleteTask(task.id)">Delete</button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="adminTasks.length === 0">
+                                <td colspan="8" class="text-center">No tasks assigned</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==================== LEAVE REQUESTS TAB ==================== -->
+            <div *ngIf="activeTab === 'leaves'">
+                <h2 class="mb-4">📅 Leave Requests</h2>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Employee</th>
+                                <th>Leave Type</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Total Days</th>
+                                <th>Reason</th>
+                                <th>Applied On</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let leave of leaveRequests">
+                                <td>{{ leave.employee?.name || leave.employeeName }}</td>
+                                <td>{{ leave.leaveType }}</td>
+                                <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
+                                <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
+                                <td>{{ leave.totalDays }}</td>
+                                <td>{{ leave.reason }}</td>
+                                <td>{{ leave.appliedDate | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                    <span class="badge" 
+                                          [class.bg-warning]="leave.status === 'Pending'"
+                                          [class.bg-success]="leave.status === 'Approved'"
+                                          [class.bg-danger]="leave.status === 'Rejected'">
+                                        {{ leave.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div *ngIf="leave.status === 'Pending'">
+                                        <button class="btn btn-success btn-sm me-1" (click)="approveLeave(leave.id)">Approve</button>
+                                        <button class="btn btn-danger btn-sm" (click)="rejectLeave(leave.id)">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr *ngIf="leaveRequests.length === 0">
+                                <td colspan="9" class="text-center">No leave requests</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==================== ATTENDANCE OVERVIEW TAB ==================== -->
+            <div *ngIf="activeTab === 'attendance'">
+                <h2 class="mb-4">📊 Attendance Overview</h2>
+
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Select Date</label>
+                        <input type="date" class="form-control" [(ngModel)]="attendanceDate" (change)="loadAllAttendance()">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-primary" (click)="loadAllAttendance()">Filter</button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Employee</th>
+                                <th>Date</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Status</th>
+                                <th>Total Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let att of allAttendances">
+                                <td>{{ att.employee?.name || att.employeeName }}</td>
+                                <td>{{ att.date | date:'dd MMM yyyy' }}</td>
+                                <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
+                                <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
+                                <td>
+                                    <span class="badge" 
+                                          [class.bg-success]="att.status === 'Present'"
+                                          [class.bg-warning]="att.status === 'Late'">
+                                        {{ att.status }}
+                                    </span>
+                                </td>
+                                <td>{{ att.totalWorkHours || 0 }} hrs</td>
+                            </tr>
+                            <tr *ngIf="allAttendances.length === 0">
+                                <td colspan="6" class="text-center">No attendance records found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <!-- Table -->
-    @if (loading) {
-        <div class="text-center mt-5">
-            <div class="spinner-border text-primary" role="status"></div>
-        </div>
-    } @else {
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>Image</th>
-                        <th>Full Name</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (user of users; track user.id) {
-                        <tr [class.inactive-row]="!user.isActive">
-                            <td>{{ (currentPage - 1) * pageSize + $index + 1 }}</td>
-                            <td>
-                                @if (user.profileImage) {
-                                    <img
-                                        [src]="apiUrl + user.profileImage"
-                                        class="table-profile-img"
-                                        alt="Profile"/>
-                                } @else {
-                                    <div class="table-profile-placeholder">
-                                        {{ user.fullName.charAt(0).toUpperCase() }}
-                                    </div>
-                                }
-                            </td>
-                            <td>{{ user.fullName }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                @if (user.isActive) {
-                                    <span class="badge bg-success">Active</span>
-                                } @else {
-                                    <span class="badge bg-danger">Inactive</span>
-                                }
-                            </td>
-                            <td>{{ user.createdAt | date:'dd MMM yyyy' }}</td>
-                            <td>
-                                @if (user.isActive) {
-                                    <button
-                                        class="btn btn-warning btn-sm me-1"
-                                        (click)="deactivateUser(user.id)">
-                                        Deactivate
-                                    </button>
-                                } @else {
-                                    <button
-                                        class="btn btn-success btn-sm me-1"
-                                        (click)="restoreUser(user.id)">
-                                        Restore
-                                    </button>
-                                }
-                                <button
-                                    class="btn btn-danger btn-sm"
-                                    (click)="deleteUser(user.id)">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <p class="text-muted mb-0">
-                Showing {{ (currentPage - 1) * pageSize + 1 }}
-                to {{ Math.min(currentPage * pageSize, totalUsers) }}
-                of {{ totalUsers }} users
-            </p>
-
-            <nav>
-                <ul class="pagination mb-0">
-                    <li class="page-item" [class.disabled]="currentPage === 1">
-                        <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
-                    </li>
-
-                    @for (page of getPages(); track page) {
-                        <li class="page-item" [class.active]="page === currentPage">
-                            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-                        </li>
-                    }
-
-                    <li class="page-item" [class.disabled]="currentPage === totalPages">
-                        <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    }
 </div>
 
 <!-- Edit Profile Popup -->
@@ -312,3 +509,84 @@
         </div>
     </div>
 }
+
+<!-- Assign Task Modal -->
+@if (showTaskModal) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Assign Task to Employee</h4>
+            
+            <div class="alert alert-danger" *ngIf="taskError">{{ taskError }}</div>
+            
+            <div class="mb-3">
+                <label class="form-label">Select Employee *</label>
+                <select class="form-select" [(ngModel)]="newTask.employeeId">
+                    <option value="">Select Employee</option>
+                    <option *ngFor="let emp of employees" [value]="emp.id">{{ emp.name }} ({{ emp.email }})</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Task Title *</label>
+                <input type="text" class="form-control" [(ngModel)]="newTask.title" placeholder="Enter task title">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Description *</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="newTask.description" placeholder="Enter task description"></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Priority</label>
+                <select class="form-select" [(ngModel)]="newTask.priority">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Due Date</label>
+                <input type="date" class="form-control" [(ngModel)]="newTask.dueDate">
+            </div>
+            
+            <button class="btn btn-success w-100" (click)="assignTask()" [disabled]="assigning">
+                {{ assigning ? 'Assigning...' : 'Assign Task' }}
+            </button>
+            <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
+        </div>
+    </div>
+}
+
+<!-- Add CSS for tabs -->
+<style>
+    .nav-tabs {
+        border-bottom: none;
+    }
+    .nav-tabs .nav-link {
+        border: none;
+        color: #666;
+        font-weight: 500;
+        padding: 10px 20px;
+        cursor: pointer;
+        background: transparent;
+    }
+    .nav-tabs .nav-link.active {
+        color: #1a1a2e;
+        border-bottom: 2px solid #1a1a2e;
+        background: transparent;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #1a1a2e;
+    }
+    .badge.bg-danger {
+        font-size: 10px;
+        padding: 2px 6px;
+        margin-left: 5px;
+    }
+    .text-danger {
+        color: #dc3545 !important;
+        font-weight: bold;
+    }
+</style>

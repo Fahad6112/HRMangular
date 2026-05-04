@@ -106,3 +106,13 @@ a:hover {
     color: #ff8096;
     font-size: 14px;
 }
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}

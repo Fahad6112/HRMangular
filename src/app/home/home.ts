@@ -45,8 +45,16 @@ export class HomeComponent implements OnInit {
         if (!isPlatformBrowser(this.platformId)) return;
 
         const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+        
         if (!token) {
             this.router.navigate(['/login']);
+            return;
+        }
+        
+        // If employee tries to access home page, redirect to employee dashboard
+        if (role === 'Employee') {
+            this.router.navigate(['/employee-dashboard']);
             return;
         }
 

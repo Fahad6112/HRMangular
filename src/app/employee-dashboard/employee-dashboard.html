@@ -1,0 +1,493 @@
+
+
+<nav class="navbar navbar-expand-sm navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand">HRMApp - Employee Dashboard</a>
+
+        <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
+            <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
+                @if (profileImage) {
+                    <img [src]="apiUrl + profileImage" class="profile-img" alt="Profile"/>
+                } @else {
+                    <div class="profile-placeholder">
+                        {{ email.charAt(0).toUpperCase() }}
+                    </div>
+                }
+            </div>
+
+            @if (showMenu) {
+                <div class="profile-menu" (click)="$event.stopPropagation()">
+                    <div class="profile-menu-header">
+                        @if (profileImage) {
+                            <img [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
+                        } @else {
+                            <div class="menu-profile-placeholder">
+                                {{ email.charAt(0).toUpperCase() }}
+                            </div>
+                        }
+                        <div>
+                            <p class="menu-name">{{ fullName }}</p>
+                            <p class="menu-email">{{ email }}</p>
+                        </div>
+                    </div>
+                    <hr class="menu-divider"/>
+                    <div class="menu-item" (click)="openChangePassword()">🔒 Change Password</div>
+                    <div class="menu-item" (click)="openEditProfile()">✏️ Edit Profile</div>
+                    <div class="menu-item text-danger" (click)="logout()">🚪 Logout</div>
+                </div>
+            }
+        </div>
+    </div>
+</nav>
+
+@if (showMenu) {
+    <div class="click-outside-overlay" (click)="showMenu = false"></div>
+}
+
+<div class="container mt-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow welcome-card">
+                <div class="card-body text-center">
+                    <div class="profile-image-container">
+                        @if (profileImage) {
+                            <img [src]="apiUrl + profileImage" class="employee-photo-large" alt="Profile"/>
+                        } @else {
+                            <div class="employee-photo-placeholder-large">
+                                {{ fullName.charAt(0).toUpperCase() }}
+                            </div>
+                        }
+                    </div>
+                    <h2 class="mt-3">Welcome, {{ fullName }}! 👋</h2>
+                    <p class="text-muted">{{ designation }} | {{ departmentName }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Present Days</h5>
+                    <h2 class="mb-0">{{ attendanceSummary?.Present || 0 }}</h2>
+                    <small>This month</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">⏰ Late Days</h5>
+                    <h2 class="mb-0">{{ attendanceSummary?.Late || 0 }}</h2>
+                    <small>This month</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">📝 Pending Tasks</h5>
+                    <h2 class="mb-0">{{ pendingTasksCount }}</h2>
+                    <small>Tasks to complete</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">✅ Completed Tasks</h5>
+                    <h2 class="mb-0">{{ completedTasksCount }}</h2>
+                    <small>Tasks done</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">⏰ Today's Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 text-center">
+                            <div class="attendance-status">
+                                <div class="mb-3">
+                                    <div class="status-icon" [class.checked-in]="isCheckedIn">
+                                        {{ isCheckedIn ? '✅' : '⭕' }}
+                                    </div>
+                                    <h5>Check In</h5>
+                                    <p *ngIf="lastCheckInTime">Time: {{ lastCheckInTime | date:'hh:mm a' }}</p>
+                                    <button class="btn btn-success btn-lg" (click)="checkIn()" [disabled]="isCheckedIn">
+                                        {{ isCheckedIn ? 'Checked In' : 'Check In' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <div class="attendance-status">
+                                <div class="mb-3">
+                                    <div class="status-icon" [class.checked-out]="isCheckedOut">
+                                        {{ isCheckedOut ? '✅' : '⭕' }}
+                                    </div>
+                                    <h5>Check Out</h5>
+                                    <p *ngIf="lastCheckOutTime">Time: {{ lastCheckOutTime | date:'hh:mm a' }}</p>
+                                    <p *ngIf="todayWorkHours > 0">Total Hours: {{ todayWorkHours }} hrs</p>
+                                    <button class="btn btn-danger btn-lg" (click)="checkOut()" [disabled]="!isCheckedIn || isCheckedOut">
+                                        {{ isCheckedOut ? 'Checked Out' : 'Check Out' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="card shadow">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="dashboardTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" (click)="activeTab = 'tasks'" [class.active]="activeTab === 'tasks'">
+                        📋 My Tasks
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" (click)="activeTab = 'leaves'" [class.active]="activeTab === 'leaves'">
+                        📅 Leave Applications
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" (click)="activeTab = 'attendance'" [class.active]="activeTab === 'attendance'">
+                        📊 Attendance History
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" (click)="activeTab = 'profile'" [class.active]="activeTab === 'profile'">
+                        👤 My Profile
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <!-- Tasks Tab -->
+            <div *ngIf="activeTab === 'tasks'">
+                <div class="mb-3">
+                    <select class="form-select w-auto d-inline-block" [(ngModel)]="taskFilter" (change)="loadTasks()">
+                        <option value="">All Tasks</option>
+                        <option value="Pending">Pending</option>
+                        <option value="InProgress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let task of tasks">
+                                <td>{{ task.title }}</td>
+                                <td>{{ task.description }}</td>
+                                <td>
+                                    <span class="badge" [class.bg-danger]="task.priority === 'Urgent'"
+                                          [class.bg-warning]="task.priority === 'High'"
+                                          [class.bg-info]="task.priority === 'Medium'"
+                                          [class.bg-secondary]="task.priority === 'Low'">
+                                        {{ task.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" [class.bg-warning]="task.status === 'Pending'"
+                                          [class.bg-primary]="task.status === 'InProgress'"
+                                          [class.bg-success]="task.status === 'Completed'">
+                                        {{ task.status }}
+                                    </span>
+                                </td>
+                                <td [class.text-danger]="isOverdue(task.dueDate)">
+                                    {{ task.dueDate | date:'dd MMM yyyy' }}
+                                    <span *ngIf="isOverdue(task.dueDate)" class="badge bg-danger ms-2">Overdue</span>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm" (change)="updateTaskStatus(task.id, $event)">
+                                        <option value="Pending" [selected]="task.status === 'Pending'">Pending</option>
+                                        <option value="InProgress" [selected]="task.status === 'InProgress'">In Progress</option>
+                                        <option value="Completed" [selected]="task.status === 'Completed'">Completed</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr *ngIf="tasks.length === 0">
+                                <td colspan="6" class="text-center">No tasks found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Leaves Tab -->
+            <div *ngIf="activeTab === 'leaves'">
+                <button class="btn btn-primary mb-3" (click)="openApplyLeave()">+ Apply for Leave</button>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Leave Type</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Total Days</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let leave of leaves">
+                                <td>{{ leave.leaveType }}</td>
+                                <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
+                                <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
+                                <td>{{ leave.totalDays }}</td>
+                                <td>{{ leave.reason }}</td>
+                                <td>
+                                    <span class="badge" [class.bg-warning]="leave.status === 'Pending'"
+                                          [class.bg-success]="leave.status === 'Approved'"
+                                          [class.bg-danger]="leave.status === 'Rejected'">
+                                        {{ leave.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" 
+                                            (click)="cancelLeave(leave.id)" 
+                                            *ngIf="leave.status === 'Pending'">
+                                        Cancel
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="leaves.length === 0">
+                                <td colspan="7" class="text-center">No leave applications found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Attendance History Tab -->
+            <div *ngIf="activeTab === 'attendance'">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <select class="form-select" [(ngModel)]="selectedMonth" (change)="loadAttendanceHistory()">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" [(ngModel)]="selectedYear" (change)="loadAttendanceHistory()">
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Status</th>
+                                <th>Total Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let att of attendanceHistory">
+                                <td>{{ att.date | date:'dd MMM yyyy' }}</td>
+                                <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
+                                <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
+                                <td>
+                                    <span class="badge" [class.bg-success]="att.status === 'Present'"
+                                          [class.bg-warning]="att.status === 'Late'">
+                                        {{ att.status }}
+                                    </span>
+                                </td>
+                                <td>{{ att.totalWorkHours }} hrs</td>
+                            </tr>
+                            <tr *ngIf="attendanceHistory.length === 0">
+                                <td colspan="5" class="text-center">No attendance records found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div *ngIf="activeTab === 'profile'">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Personal Information</h5>
+                        <table class="table">
+                            <tr>
+                                <th>Full Name:</th>
+                                <td>{{ fullName }}</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ email }}</td>
+                            </tr>
+                            <tr>
+                                <th>Phone:</th>
+                                <td>{{ phone || 'Not provided' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Address:</th>
+                                <td>{{ address || 'Not provided' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Work Information</h5>
+                        <table class="table">
+                            <tr>
+                                <th>Department:</th>
+                                <td>{{ departmentName }}</td>
+                            </tr>
+                            <tr>
+                                <th>Designation:</th>
+                                <td>{{ designation }}</td>
+                            </tr>
+                            <tr>
+                                <th>Salary:</th>
+                                <td>{{ salary | currency }}</td>
+                            </tr>
+                            <tr>
+                                <th>Joining Date:</th>
+                                <td>{{ joiningDate | date:'dd MMM yyyy' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apply Leave Modal -->
+@if (showLeaveModal) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Apply for Leave</h4>
+            <div class="alert alert-danger" *ngIf="leaveError">{{ leaveError }}</div>
+            <div class="mb-3">
+                <label class="form-label">Leave Type</label>
+                <select class="form-select" [(ngModel)]="leaveRequest.leaveType">
+                    <option value="Annual">Annual Leave</option>
+                    <option value="Sick">Sick Leave</option>
+                    <option value="Casual">Casual Leave</option>
+                    <option value="Unpaid">Unpaid Leave</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" class="form-control" [(ngModel)]="leaveRequest.startDate">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">End Date</label>
+                <input type="date" class="form-control" [(ngModel)]="leaveRequest.endDate">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Reason</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="leaveRequest.reason"></textarea>
+            </div>
+            <button class="btn btn-success w-100" (click)="submitLeave()" [disabled]="submitting">
+                {{ submitting ? 'Submitting...' : 'Submit Application' }}
+            </button>
+            <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
+        </div>
+    </div>
+}
+
+<!-- Edit Profile Modal -->
+@if (showEditProfile) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Edit Profile</h4>
+            <div class="alert alert-danger" *ngIf="profileError">{{ profileError }}</div>
+            <div class="alert alert-success" *ngIf="profileSuccess">{{ profileSuccess }}</div>
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-control" [(ngModel)]="editFullName">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Phone</label>
+                <input type="text" class="form-control" [(ngModel)]="editPhone">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Address</label>
+                <textarea class="form-control" rows="2" [(ngModel)]="editAddress"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Profile Image</label>
+                <input type="file" class="form-control" accept="image/*" (change)="onImageSelected($event)">
+            </div>
+            @if (imagePreview) {
+                <div class="text-center mb-3">
+                    <img [src]="imagePreview" class="preview-img" alt="Preview">
+                </div>
+            }
+            <button class="btn btn-success w-100" (click)="updateProfile()" [disabled]="updating">
+                {{ updating ? 'Saving...' : 'Save Changes' }}
+            </button>
+            <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
+        </div>
+    </div>
+}
+
+<!-- Change Password Modal -->
+@if (showChangePassword) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Change Password</h4>
+            <div class="alert alert-danger" *ngIf="passwordError">{{ passwordError }}</div>
+            <div class="alert alert-success" *ngIf="passwordSuccess">{{ passwordSuccess }}</div>
+            <div class="mb-3">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-control" [(ngModel)]="currentPassword">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">New Password (min 6 characters)</label>
+                <input type="password" class="form-control" [(ngModel)]="newPassword">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" [(ngModel)]="confirmPassword">
+            </div>
+            <button class="btn btn-success w-100" (click)="changePassword()" [disabled]="changingPassword">
+                {{ changingPassword ? 'Changing...' : 'Change Password' }}
+            </button>
+            <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
+        </div>
+    </div>
+}

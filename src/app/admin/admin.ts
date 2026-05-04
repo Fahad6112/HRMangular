@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
     styleUrl: './admin.css'
 })
 export class AdminComponent implements OnInit {
-    // users
+    // Users
     users: any[] = [];
     totalUsers: number = 0;
     totalPages: number = 0;
@@ -21,40 +21,63 @@ export class AdminComponent implements OnInit {
     currentStatus: string = 'active';
     loading: boolean = true;
 
-    // profile
+    // Profile
     email: string = '';
     fullName: string = '';
     profileImage: string | null = null;
     apiUrl: string = 'https://localhost:7141';
 
-    // menu
+    // Menu & Sidebar
     showMenu: boolean = false;
-
-    // ✅ NEW: sidebar
     showSidebar: boolean = false;
 
-    // edit profile
+    // Edit Profile
     showEditProfile: boolean = false;
     editFullName: string = '';
     selectedImage: File | null = null;
     imagePreview: string | null = null;
     updating: boolean = false;
 
-    // change password
+    // Change Password
     showChangePassword: boolean = false;
     newPassword: string = '';
     confirmNewPassword: string = '';
 
-    // messages
+    // Messages
     errorMessage: string = '';
     successMessage: string = '';
     editErrorMessage: string = '';
     editSuccessMessage: string = '';
 
-    // expose Math to template
-    Math = Math;
+    // Tab Management
+    activeTab: string = 'users';
 
-    // search debounce
+    // Task Management
+    adminTasks: any[] = [];
+    showTaskModal: boolean = false;
+    newTask: any = {
+        employeeId: '',
+        title: '',
+        description: '',
+        priority: 'Medium',
+        dueDate: ''
+    };
+    assigning: boolean = false;
+    taskError: string = '';
+
+    // Leave Management
+    leaveRequests: any[] = [];
+    pendingLeavesCount: number = 0;
+
+    // Attendance Management
+    allAttendances: any[] = [];
+    attendanceDate: string = new Date().toISOString().split('T')[0];
+
+    // Employees list for task assignment
+    employees: any[] = [];
+
+    // Expose Math to template
+    Math = Math;
     private searchTimeout: any;
 
     constructor(
@@ -85,8 +108,10 @@ export class AdminComponent implements OnInit {
         this.editFullName = this.fullName;
 
         this.loadUsers();
+        this.loadEmployees();
     }
 
+    // ==================== USER MANAGEMENT ====================
     loadUsers() {
         const token = localStorage.getItem('token');
         this.loading = true;
@@ -221,21 +246,219 @@ export class AdminComponent implements OnInit {
         });
     }
 
-    // ✅ Profile menu — toggle on click, close via overlay
+    // ==================== EMPLOYEE MANAGEMENT ====================
+    loadEmployees() {
+        const token = localStorage.getItem('token');
+        
+        fetch('https://localhost:7141/api/employees?pageSize=100', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.employees) {
+                this.employees = data.employees;
+            }
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error loading employees:', error));
+    }
+
+    // ==================== TASK MANAGEMENT ====================
+    loadAdminTasks() {
+        const token = localStorage.getItem('token');
+        
+        fetch('https://localhost:7141/api/admin/tasks/all', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.adminTasks = data;
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error loading tasks:', error));
+    }
+
+    openAssignTaskModal() {
+        this.newTask = {
+            employeeId: '',
+            title: '',
+            description: '',
+            priority: 'Medium',
+            dueDate: ''
+        };
+        this.taskError = '';
+        this.showTaskModal = true;
+        this.cdr.detectChanges();
+    }
+
+    assignTask() {
+        if (!this.newTask.employeeId || !this.newTask.title || !this.newTask.description) {
+            this.taskError = 'Please fill in all required fields';
+            return;
+        }
+        
+        this.assigning = true;
+        const token = localStorage.getItem('token');
+        
+        fetch('https://localhost:7141/api/admin/tasks/assign', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(this.newTask)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            this.assigning = false;
+            this.showTaskModal = false;
+            this.loadAdminTasks();
+            this.cdr.detectChanges();
+        })
+        .catch(error => {
+            console.error('Error assigning task:', error);
+            this.taskError = 'Failed to assign task';
+            this.assigning = false;
+            this.cdr.detectChanges();
+        });
+    }
+
+    deleteTask(taskId: number) {
+        if (!confirm('Are you sure you want to delete this task?')) return;
+        
+        const token = localStorage.getItem('token');
+        
+        fetch(`https://localhost:7141/api/admin/tasks/${taskId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            this.loadAdminTasks();
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error deleting task:', error));
+    }
+
+    isTaskOverdue(dueDate: string): boolean {
+        if (!dueDate) return false;
+        return new Date(dueDate) < new Date();
+    }
+
+    // ==================== LEAVE MANAGEMENT ====================
+    loadPendingLeaves() {
+        const token = localStorage.getItem('token');
+        
+        fetch('https://localhost:7141/api/admin/leaves/pending', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.leaveRequests = data;
+            this.pendingLeavesCount = data.length;
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error loading leaves:', error));
+    }
+
+    approveLeave(leaveId: number) {
+        const remarks = prompt('Enter any remarks (optional):');
+        
+        const token = localStorage.getItem('token');
+        
+        fetch(`https://localhost:7141/api/admin/leaves/${leaveId}/approve`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ adminRemarks: remarks || '' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            this.loadPendingLeaves();
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error approving leave:', error));
+    }
+
+    rejectLeave(leaveId: number) {
+        const remarks = prompt('Enter rejection reason:');
+        if (!remarks) return;
+        
+        const token = localStorage.getItem('token');
+        
+        fetch(`https://localhost:7141/api/admin/leaves/${leaveId}/reject`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ adminRemarks: remarks })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            this.loadPendingLeaves();
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error rejecting leave:', error));
+    }
+
+    // ==================== ATTENDANCE MANAGEMENT ====================
+    loadAllAttendance() {
+        const token = localStorage.getItem('token');
+        const url = this.attendanceDate ? 
+            `https://localhost:7141/api/admin/attendance/all?date=${this.attendanceDate}` :
+            'https://localhost:7141/api/admin/attendance/all';
+        
+        fetch(url, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.allAttendances = data;
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error loading attendance:', error));
+    }
+
+    // ==================== TAB MANAGEMENT ====================
+    onTabChange(tab: string) {
+        this.activeTab = tab;
+        if (tab === 'tasks') {
+            this.loadAdminTasks();
+        } else if (tab === 'leaves') {
+            this.loadPendingLeaves();
+        } else if (tab === 'attendance') {
+            this.loadAllAttendance();
+        }
+    }
+
+    // ==================== PROFILE & MENU ====================
     toggleMenu() {
         this.showMenu = !this.showMenu;
         this.cdr.detectChanges();
     }
 
-    // ✅ NEW: Sidebar toggle
     toggleSidebar() {
         this.showSidebar = !this.showSidebar;
         this.cdr.detectChanges();
     }
 
-    // ✅ NEW: for "User Dashboard" sidebar item (stays on admin page)
     goToDashboard() {
         this.router.navigate(['/admin']);
+    }
+
+    goToEmployees() {
+        this.router.navigate(['/employee']);
     }
 
     openEditProfile() {
@@ -259,6 +482,7 @@ export class AdminComponent implements OnInit {
     closeModals() {
         this.showEditProfile = false;
         this.showChangePassword = false;
+        this.showTaskModal = false;
         this.showMenu = false;
         this.editErrorMessage = '';
         this.editSuccessMessage = '';
@@ -314,6 +538,9 @@ export class AdminComponent implements OnInit {
                 localStorage.setItem('fullName', this.fullName);
                 localStorage.setItem('profileImage', this.profileImage || '');
                 this.cdr.detectChanges();
+                setTimeout(() => {
+                    this.closeModals();
+                }, 2000);
             } else {
                 this.editErrorMessage = 'Failed to update profile.';
                 this.cdr.detectChanges();
@@ -378,10 +605,6 @@ export class AdminComponent implements OnInit {
             this.editErrorMessage = 'Something went wrong.';
             this.cdr.detectChanges();
         });
-    }
-
-    goToEmployees() {
-        this.router.navigate(['/employee']);
     }
 
     logout() {

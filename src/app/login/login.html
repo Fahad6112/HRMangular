@@ -1,45 +1,51 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-4">
-            <div class="card">
-                <div class="card-body p-4">
-                    <h2 class="text-center mb-4">Login</h2>
-
-                    <div *ngIf="errorMessage" class="alert alert-danger">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">Login</h3>
+                    
+                    <div class="alert alert-danger" *ngIf="errorMessage">
                         {{ errorMessage }}
                     </div>
-
+                    
                     <div class="mb-3">
                         <label class="form-label">Email</label>
-                        <input
-                            type="email"
-                            class="form-control"
+                        <input 
+                            type="email" 
+                            class="form-control" 
                             [(ngModel)]="email"
-                            placeholder="Enter email"/>
+                            placeholder="Enter your email"
+                            [disabled]="loading">
                     </div>
-
+                    
                     <div class="mb-3">
                         <label class="form-label">Password</label>
-                        <input
-                            type="password"
-                            class="form-control"
+                        <input 
+                            type="password" 
+                            class="form-control" 
                             [(ngModel)]="password"
-                            placeholder="Enter password"/>
+                            placeholder="Enter your password"
+                            [disabled]="loading"
+                            (keyup.enter)="login()">
                     </div>
-
-                    <button
-                        class="btn btn-success w-100"
-                        (click)="login()">
-                        Login
+                    
+                    <button 
+                        class="btn btn-primary w-100" 
+                        (click)="login()"
+                        [disabled]="loading">
+                        <span *ngIf="!loading">Login</span>
+                        <span *ngIf="loading">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Logging in...
+                        </span>
                     </button>
-
-                    <p class="text-center mt-3">
-    Don't have an account?
-    <a routerLink="/register">Register</a>
-</p>
-<!-- <p class="text-center">
-    <a routerLink="/change-password">Forgot Password?</a>
-</p> -->
+                    
+                    <hr>
+                    <p class="text-center mb-0">
+                        Don't have an account? 
+                        <a routerLink="/register">Register here</a>
+                    </p>
                 </div>
             </div>
         </div>

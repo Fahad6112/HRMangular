@@ -5,6 +5,8 @@ import { HomeComponent } from './home/home';
 import { RegisterComponent } from './register/register';
 import { ChangePasswordComponent } from './change-password/change-password';
 import { EmployeeComponent } from './employee/employee';
+import { EmployeeDashboardComponent } from './employee-dashboard/employee-dashboard';
+import { EmployeeGuard } from './guards/employee.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -14,4 +16,6 @@ export const routes: Routes = [
     { path: 'admin', component: AdminComponent },
     { path: 'home', component: HomeComponent },
     { path: 'employee', component: EmployeeComponent },
+     { path: 'employee-dashboard', component: EmployeeDashboardComponent },
+     { path: '**', redirectTo: '/login' }
 ];

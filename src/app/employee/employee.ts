@@ -373,73 +373,104 @@ export class EmployeeComponent implements OnInit {
     }
 
     saveEmployee() {
-        if (!this.form.name || !this.form.email ||
-            !this.form.phone || !this.form.address ||
-            !this.form.designation || !this.form.salary ||
-            !this.form.departmentId) {
-            this.formError = 'Please fill in all required fields';
-            this.cdr.detectChanges();
-            return;
-        }
-
-        this.saving = true;
-        this.formError = '';
-
-        const token = localStorage.getItem('token');
-        const formData = new FormData();
-
-        formData.append('name', this.form.name);
-        formData.append('email', this.form.email);
-        formData.append('phone', this.form.phone);
-        formData.append('address', this.form.address);
-        formData.append('designation', this.form.designation);
-        formData.append('salary', this.form.salary.toString());
-        formData.append('departmentId', this.form.departmentId.toString());
-        formData.append('joiningDate', this.form.joiningDate);
-
-        if (this.selectedPhoto) {
-            formData.append('photo', this.selectedPhoto);
-        }
-
-        const url = this.isEditing
-            ? `https://localhost:7141/api/employees/${this.form.id}`
-            : 'https://localhost:7141/api/employees';
-
-        const method = this.isEditing ? 'PUT' : 'POST';
-
-        fetch(url, {
-            method: method,
-            headers: { 'Authorization': `Bearer ${token}` },
-            body: formData
-        })
-        .then(async response => {
-            const data = await response.json();
-            return { status: response.status, data };
-        })
-        .then(result => {
-            this.saving = false;
-            if (result.status === 200 || result.status === 201) {
-                this.successMessage = this.isEditing
-                    ? 'Employee updated successfully!'
-                    : 'Employee added successfully!';
-                this.closeModals();
-                this.loadEmployees();
-                setTimeout(() => {
-                    this.successMessage = '';
-                    this.cdr.detectChanges();
-                }, 3000);
-            } else {
-                this.formError = result.data.message || 'Failed to save employee.';
-            }
-            this.cdr.detectChanges();
-        })
-        .catch(error => {
-            console.error('Error saving employee:', error);
-            this.saving = false;
-            this.formError = 'Something went wrong.';
-            this.cdr.detectChanges();
-        });
+    // Validation
+    if (!this.form.name || !this.form.email ||
+        !this.form.phone || !this.form.address ||
+        !this.form.designation || !this.form.salary ||
+        !this.form.departmentId) {
+        this.formError = 'Please fill in all required fields';
+        this.cdr.detectChanges();
+        return;
     }
+
+    // For new employee, password is required
+    if (!this.isEditing && (!this.form.temporaryPassword || this.form.temporaryPassword.length < 6)) {
+        this.formError = 'Temporary password is required and must be at least 6 characters';
+        this.cdr.detectChanges();
+        return;
+    }
+
+    this.saving = true;
+    this.formError = '';
+
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+
+    // Append all fields
+    formData.append('name', this.form.name);
+    formData.append('email', this.form.email);
+    formData.append('phone', this.form.phone);
+    formData.append('address', this.form.address);
+    formData.append('designation', this.form.designation);
+    formData.append('salary', this.form.salary.toString());
+    formData.append('departmentId', this.form.departmentId.toString());
+    formData.append('joiningDate', this.form.joiningDate);
+    
+    // Only send password when creating new employee
+    if (!this.isEditing && this.form.temporaryPassword) {
+        formData.append('temporaryPassword', this.form.temporaryPassword);
+    }
+
+    if (this.selectedPhoto) {
+        formData.append('photo', this.selectedPhoto);
+    }
+
+    const url = this.isEditing
+        ? `https://localhost:7141/api/employees/${this.form.id}`
+        : 'https://localhost:7141/api/employees';
+
+    const method = this.isEditing ? 'PUT' : 'POST';
+
+    console.log('Saving employee:', {
+        url,
+        method,
+        formData: {
+            name: this.form.name,
+            email: this.form.email,
+            phone: this.form.phone,
+            address: this.form.address,
+            designation: this.form.designation,
+            salary: this.form.salary,
+            departmentId: this.form.departmentId,
+            joiningDate: this.form.joiningDate,
+            temporaryPassword: this.form.temporaryPassword
+        }
+    });
+
+    fetch(url, {
+        method: method,
+        headers: { 
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    })
+    .then(async response => {
+        const data = await response.json();
+        console.log('Response:', { status: response.status, data });
+        
+        if (response.status === 200 || response.status === 201) {
+            this.successMessage = this.isEditing
+                ? 'Employee updated successfully!'
+                : `Employee added successfully! Temporary password: ${this.form.temporaryPassword}`;
+            this.closeModals();
+            this.loadEmployees();
+            setTimeout(() => {
+                this.successMessage = '';
+                this.cdr.detectChanges();
+            }, 5000);
+        } else {
+            this.formError = data.message || 'Failed to save employee.';
+        }
+        this.saving = false;
+        this.cdr.detectChanges();
+    })
+    .catch(error => {
+        console.error('Error saving employee:', error);
+        this.formError = 'Something went wrong. Please check console for details.';
+        this.saving = false;
+        this.cdr.detectChanges();
+    });
+}
 
     deactivate(id: number) {
         if (!confirm('Deactivate this employee?')) return;

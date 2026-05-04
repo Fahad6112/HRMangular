@@ -311,6 +311,15 @@
                     <label class="form-label">Joining Date *</label>
                     <input type="date" class="form-control" [(ngModel)]="form.joiningDate"/>
                 </div>
+                <div class="col-md-6 mb-3" *ngIf="!isEditing">
+    <label class="form-label">Temporary Password *</label>
+    <input 
+        type="password" 
+        class="form-control" 
+        [(ngModel)]="form.temporaryPassword" 
+        placeholder="Enter temporary password (min 6 characters)"/>
+    <small class="text-muted">Employee will use this password to login for the first time</small>
+</div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Photo</label>
                     <input
