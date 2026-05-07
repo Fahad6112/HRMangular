@@ -20,6 +20,18 @@ export class AdminComponent implements OnInit {
     searchText: string = '';
     currentStatus: string = 'active';
     loading: boolean = true;
+    
+    // Employee List Properties
+    employeeList: any[] = [];
+    empLoading: boolean = false;
+    empError: string = '';
+    empSuccess: string = '';
+    empSaving: boolean = false;
+    departments: any[] = [];
+    newEmployee: any = {
+        name: '', email: '', phone: '', address: '', designation: '', salary: 0,
+        departmentId: '', joiningDate: new Date().toISOString().split('T')[0], temporaryPassword: ''
+    };
 
     // Profile
     email: string = '';
@@ -49,8 +61,9 @@ export class AdminComponent implements OnInit {
     editErrorMessage: string = '';
     editSuccessMessage: string = '';
 
-    // Tab Management
-    activeTab: string = 'users';
+    // Content Management
+    activeContent: string = '';
+    showHomePage: boolean = true;
 
     // Task Management
     adminTasks: any[] = [];
@@ -68,6 +81,12 @@ export class AdminComponent implements OnInit {
     // Leave Management
     leaveRequests: any[] = [];
     pendingLeavesCount: number = 0;
+    
+    // Leave History
+    leaveHistory: any[] = [];
+    historyFilterStatus: string = '';
+    historyStartDate: string = '';
+    historyEndDate: string = '';
 
     // Attendance Management
     allAttendances: any[] = [];
@@ -75,6 +94,14 @@ export class AdminComponent implements OnInit {
 
     // Employees list for task assignment
     employees: any[] = [];
+
+    // Collapsible Sidebar Sections - all collapsed initially
+    expandedSections: any = {
+        management: false,
+        tasks: false,
+        leaves: false,
+        attendance: false
+    };
 
     // Expose Math to template
     Math = Math;
@@ -107,8 +134,190 @@ export class AdminComponent implements OnInit {
         this.profileImage = localStorage.getItem('profileImage') || null;
         this.editFullName = this.fullName;
 
+        // Set initial state - show welcome page
+        this.showHomePage = true;
+        this.activeContent = '';
+
+        // Load data
         this.loadUsers();
         this.loadEmployees();
+        this.loadDepartments();
+        this.loadAdminTasks();
+        this.loadAllAttendance();
+        this.loadPendingLeaves();
+        this.loadLeaveHistory();
+    }
+
+    // ==================== HELPER METHODS ====================
+    getActiveUsersCount(): number {
+        return this.users.filter(u => u.isActive).length;
+    }
+
+    getActiveEmployeesCount(): number {
+        return this.employeeList.filter(e => e.isActive).length;
+    }
+
+    // ==================== GO TO HOME (Welcome Page) ====================
+    goToHome() {
+        this.showHomePage = true;
+        this.activeContent = '';
+        this.showSidebar = false;
+        this.cdr.detectChanges();
+    }
+
+    // ==================== MENU CLICK HANDLER ====================
+    onMenuClick(menuItem: string) {
+        console.log('Menu clicked:', menuItem);
+        this.showHomePage = false;
+        this.activeContent = menuItem;
+        this.showSidebar = false;
+        
+        switch(menuItem) {
+            case 'employees':
+                this.loadEmployeesList();
+                break;
+            case 'createemployee':
+                this.resetNewEmployeeForm();
+                break;
+            case 'tasks':
+                this.loadAdminTasks();
+                break;
+            case 'leaverequests':
+                this.loadPendingLeaves();
+                break;
+            case 'leavehistory':
+                this.loadLeaveHistory();
+                break;
+            case 'attendance':
+                this.loadAllAttendance();
+                break;
+        }
+    }
+
+    // ==================== TOGGLE SIDEBAR SECTIONS ====================
+    toggleSection(section: string) {
+        this.expandedSections[section] = !this.expandedSections[section];
+        this.cdr.detectChanges();
+    }
+
+    // ==================== EMPLOYEE LIST METHODS ====================
+    loadEmployeesList() {
+        const token = localStorage.getItem('token');
+        this.empLoading = true;
+        this.cdr.detectChanges();
+        
+        fetch('https://localhost:7141/api/employees?pageSize=100', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.employeeList = data.employees || [];
+            this.empLoading = false;
+            this.cdr.detectChanges();
+        })
+        .catch(error => {
+            console.error('Error loading employees:', error);
+            this.empLoading = false;
+            this.cdr.detectChanges();
+        });
+    }
+
+    loadDepartments() {
+        const token = localStorage.getItem('token');
+        
+        fetch('https://localhost:7141/api/employees/departments', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.departments = data;
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error loading departments:', error));
+    }
+
+    resetNewEmployeeForm() {
+        this.newEmployee = {
+            name: '', email: '', phone: '', address: '', designation: '', salary: 0,
+            departmentId: '', joiningDate: new Date().toISOString().split('T')[0], temporaryPassword: ''
+        };
+        this.empError = '';
+        this.empSuccess = '';
+    }
+
+    createEmployee() {
+        if (!this.newEmployee.name || !this.newEmployee.email || !this.newEmployee.temporaryPassword) {
+            this.empError = 'Please fill all required fields';
+            return;
+        }
+        
+        if (this.newEmployee.temporaryPassword.length < 6) {
+            this.empError = 'Password must be at least 6 characters';
+            return;
+        }
+        
+        this.empSaving = true;
+        this.empError = '';
+        const token = localStorage.getItem('token');
+        
+        const formData = new FormData();
+        formData.append('name', this.newEmployee.name);
+        formData.append('email', this.newEmployee.email);
+        formData.append('phone', this.newEmployee.phone);
+        formData.append('address', this.newEmployee.address);
+        formData.append('designation', this.newEmployee.designation);
+        formData.append('salary', this.newEmployee.salary.toString());
+        formData.append('departmentId', this.newEmployee.departmentId.toString());
+        formData.append('joiningDate', this.newEmployee.joiningDate);
+        formData.append('temporaryPassword', this.newEmployee.temporaryPassword);
+        
+        fetch('https://localhost:7141/api/employees', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+        })
+        .then(async response => {
+            const data = await response.json();
+            if (response.ok) {
+                this.empSuccess = 'Employee created successfully!';
+                setTimeout(() => {
+                    this.onMenuClick('employees');
+                }, 1500);
+            } else {
+                this.empError = data.message || 'Failed to create employee';
+            }
+            this.empSaving = false;
+            this.cdr.detectChanges();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            this.empError = 'Something went wrong';
+            this.empSaving = false;
+            this.cdr.detectChanges();
+        });
+    }
+
+    deleteEmployee(id: number) {
+        if (!confirm('Are you sure you want to delete this employee?')) return;
+        
+        const token = localStorage.getItem('token');
+        
+        fetch(`https://localhost:7141/api/employees/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || 'Employee deleted');
+            this.loadEmployeesList();
+            this.cdr.detectChanges();
+        })
+        .catch(error => {
+            console.error('Error deleting employee:', error);
+            alert('Failed to delete employee');
+        });
     }
 
     // ==================== USER MANAGEMENT ====================
@@ -383,6 +592,7 @@ export class AdminComponent implements OnInit {
         .then(data => {
             alert(data.message);
             this.loadPendingLeaves();
+            this.loadLeaveHistory();
             this.cdr.detectChanges();
         })
         .catch(error => console.error('Error approving leave:', error));
@@ -406,9 +616,53 @@ export class AdminComponent implements OnInit {
         .then(data => {
             alert(data.message);
             this.loadPendingLeaves();
+            this.loadLeaveHistory();
             this.cdr.detectChanges();
         })
         .catch(error => console.error('Error rejecting leave:', error));
+    }
+
+    // ==================== LEAVE HISTORY ====================
+    loadLeaveHistory() {
+        const token = localStorage.getItem('token');
+        let url = 'https://localhost:7141/api/admin/leaves/all';
+        const params: string[] = [];
+        
+        if (this.historyFilterStatus) {
+            params.push(`status=${this.historyFilterStatus}`);
+        }
+        if (this.historyStartDate) {
+            params.push(`startDate=${this.historyStartDate}`);
+        }
+        if (this.historyEndDate) {
+            params.push(`endDate=${this.historyEndDate}`);
+        }
+        
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        
+        fetch(url, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.leaveHistory = Array.isArray(data) ? data : [];
+            this.cdr.detectChanges();
+        })
+        .catch(error => {
+            console.error('Error loading leave history:', error);
+            this.leaveHistory = [];
+            this.cdr.detectChanges();
+        });
+    }
+
+    resetHistoryFilters() {
+        this.historyFilterStatus = '';
+        this.historyStartDate = '';
+        this.historyEndDate = '';
+        this.loadLeaveHistory();
     }
 
     // ==================== ATTENDANCE MANAGEMENT ====================
@@ -428,18 +682,6 @@ export class AdminComponent implements OnInit {
             this.cdr.detectChanges();
         })
         .catch(error => console.error('Error loading attendance:', error));
-    }
-
-    // ==================== TAB MANAGEMENT ====================
-    onTabChange(tab: string) {
-        this.activeTab = tab;
-        if (tab === 'tasks') {
-            this.loadAdminTasks();
-        } else if (tab === 'leaves') {
-            this.loadPendingLeaves();
-        } else if (tab === 'attendance') {
-            this.loadAllAttendance();
-        }
     }
 
     // ==================== PROFILE & MENU ====================

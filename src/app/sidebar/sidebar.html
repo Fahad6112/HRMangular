@@ -1,0 +1,8 @@
+<div class="sidebar-menu">
+    @for (menu of menuItems; track menu.id) {
+        <div class="sidebar-item" (click)="onMenuItemClick(menu.menuName.toLowerCase().replace(' ', ''))">
+            <span class="sidebar-icon">{{ menu.icon }}</span>
+            <span class="sidebar-label">{{ menu.menuName }}</span>
+        </div>
+    }
+</div>

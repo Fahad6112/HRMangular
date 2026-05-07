@@ -1,8 +1,11 @@
-
-
 <nav class="navbar navbar-expand-sm navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand">HRMApp - Employee Dashboard</a>
+        <button class="menu-toggle-btn" (click)="toggleSidebar(); $event.stopPropagation()">
+            <span class="menu-bar"></span>
+            <span class="menu-bar"></span>
+            <span class="menu-bar"></span>
+        </button>
+        <a class="navbar-brand" (click)="goToHome()" style="cursor: pointer;">HRMApp - Employee Dashboard</a>
 
         <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
             <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
@@ -14,38 +17,70 @@
                     </div>
                 }
             </div>
-
-            @if (showMenu) {
-                <div class="profile-menu" (click)="$event.stopPropagation()">
-                    <div class="profile-menu-header">
-                        @if (profileImage) {
-                            <img [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
-                        } @else {
-                            <div class="menu-profile-placeholder">
-                                {{ email.charAt(0).toUpperCase() }}
-                            </div>
-                        }
-                        <div>
-                            <p class="menu-name">{{ fullName }}</p>
-                            <p class="menu-email">{{ email }}</p>
-                        </div>
-                    </div>
-                    <hr class="menu-divider"/>
-                    <div class="menu-item" (click)="openChangePassword()">🔒 Change Password</div>
-                    <div class="menu-item" (click)="openEditProfile()">✏️ Edit Profile</div>
-                    <div class="menu-item text-danger" (click)="logout()">🚪 Logout</div>
-                </div>
-            }
         </div>
     </div>
 </nav>
 
+<!-- Profile Menu - Outside navbar -->
+@if (showMenu) {
+    <div class="profile-menu" (click)="$event.stopPropagation()">
+        <div class="profile-menu-header">
+            @if (profileImage) {
+                <img [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
+            } @else {
+                <div class="menu-profile-placeholder">
+                    {{ email.charAt(0).toUpperCase() }}
+                </div>
+            }
+            <div>
+                <p class="menu-name">{{ fullName }}</p>
+                <p class="menu-email">{{ email }}</p>
+            </div>
+        </div>
+        <hr class="menu-divider"/>
+        <div class="menu-item" (click)="openEditProfile()">✏️ Edit Profile</div>
+        <div class="menu-item" (click)="openChangePassword()">🔒 Change Password</div>
+        <div class="menu-item text-danger" (click)="logout()">🚪 Logout</div>
+    </div>
+}
+
+<!-- Click-outside overlay for profile menu -->
 @if (showMenu) {
     <div class="click-outside-overlay" (click)="showMenu = false"></div>
 }
 
-<div class="container mt-4">
-    <!-- Welcome Section -->
+@if (showSidebar) {
+    <div class="sidebar-overlay" (click)="toggleSidebar()"></div>
+}
+
+<!-- Sidebar -->
+<div class="sidebar" [class.sidebar-open]="showSidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">📋 Menu</span>
+        <button class="sidebar-close-btn" (click)="toggleSidebar()">✕</button>
+    </div>
+    <div class="sidebar-menu">
+        <div class="sidebar-item" [class.sidebar-item-active]="activeTab === 'tasks'" (click)="activeTab = 'tasks'; loadTasks(); toggleSidebar()">
+            <span class="sidebar-icon">📋</span>
+            <span class="sidebar-label">My Tasks</span>
+        </div>
+        <div class="sidebar-item" [class.sidebar-item-active]="activeTab === 'leaves'" (click)="activeTab = 'leaves'; loadLeaves(); toggleSidebar()">
+            <span class="sidebar-icon">📅</span>
+            <span class="sidebar-label">Leave Applications</span>
+        </div>
+        <div class="sidebar-item" [class.sidebar-item-active]="activeTab === 'attendance'" (click)="activeTab = 'attendance'; loadAttendanceHistory(); toggleSidebar()">
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-label">Attendance History</span>
+        </div>
+        <div class="sidebar-item" [class.sidebar-item-active]="activeTab === 'profile'" (click)="activeTab = 'profile'; toggleSidebar()">
+            <span class="sidebar-icon">👤</span>
+            <span class="sidebar-label">My Profile</span>
+        </div>
+    </div>
+</div>
+
+<!-- WELCOME / HOME PAGE -->
+<div *ngIf="showHomePage" class="container mt-4">
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card shadow welcome-card">
@@ -66,7 +101,6 @@
         </div>
     </div>
 
-    <!-- Stats Cards -->
     <div class="row mb-4">
         <div class="col-md-3 mb-3">
             <div class="card stat-card bg-primary text-white">
@@ -106,7 +140,6 @@
         </div>
     </div>
 
-    <!-- Attendance Section -->
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card shadow">
@@ -123,9 +156,7 @@
                                     </div>
                                     <h5>Check In</h5>
                                     <p *ngIf="lastCheckInTime">Time: {{ lastCheckInTime | date:'hh:mm a' }}</p>
-                                    <button class="btn btn-success btn-lg" (click)="checkIn()" [disabled]="isCheckedIn">
-                                        {{ isCheckedIn ? 'Checked In' : 'Check In' }}
-                                    </button>
+                                    <button class="btn btn-success btn-lg" (click)="checkIn()" [disabled]="isCheckedIn">{{ isCheckedIn ? 'Checked In' : 'Check In' }}</button>
                                 </div>
                             </div>
                         </div>
@@ -138,9 +169,7 @@
                                     <h5>Check Out</h5>
                                     <p *ngIf="lastCheckOutTime">Time: {{ lastCheckOutTime | date:'hh:mm a' }}</p>
                                     <p *ngIf="todayWorkHours > 0">Total Hours: {{ todayWorkHours }} hrs</p>
-                                    <button class="btn btn-danger btn-lg" (click)="checkOut()" [disabled]="!isCheckedIn || isCheckedOut">
-                                        {{ isCheckedOut ? 'Checked Out' : 'Check Out' }}
-                                    </button>
+                                    <button class="btn btn-danger btn-lg" (click)="checkOut()" [disabled]="!isCheckedIn || isCheckedOut">{{ isCheckedOut ? 'Checked Out' : 'Check Out' }}</button>
                                 </div>
                             </div>
                         </div>
@@ -149,245 +178,165 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Tabs Section -->
+<!-- TASK MANAGEMENT PAGE -->
+<div *ngIf="activeTab === 'tasks'" class="container mt-4">
     <div class="card shadow">
-        <div class="card-header">
-            <ul class="nav nav-tabs card-header-tabs" id="dashboardTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" (click)="activeTab = 'tasks'" [class.active]="activeTab === 'tasks'">
-                        📋 My Tasks
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" (click)="activeTab = 'leaves'" [class.active]="activeTab === 'leaves'">
-                        📅 Leave Applications
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" (click)="activeTab = 'attendance'" [class.active]="activeTab === 'attendance'">
-                        📊 Attendance History
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" (click)="activeTab = 'profile'" [class.active]="activeTab === 'profile'">
-                        👤 My Profile
-                    </button>
-                </li>
-            </ul>
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">📋 My Tasks</h4>
         </div>
         <div class="card-body">
-            <!-- Tasks Tab -->
-            <div *ngIf="activeTab === 'tasks'">
-                <div class="mb-3">
-                    <select class="form-select w-auto d-inline-block" [(ngModel)]="taskFilter" (change)="loadTasks()">
-                        <option value="">All Tasks</option>
-                        <option value="Pending">Pending</option>
-                        <option value="InProgress">In Progress</option>
-                        <option value="Completed">Completed</option>
+            <div class="mb-3">
+                <select class="form-select w-auto d-inline-block" [(ngModel)]="taskFilter" (change)="loadTasks()">
+                    <option value="">All Tasks</option>
+                    <option value="Pending">Pending</option>
+                    <option value="InProgress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let task of tasks">
+                            <td>{{ task.title }}</td>
+                            <td>{{ task.description }}</td>
+                            <td><span class="badge" [class.bg-danger]="task.priority === 'Urgent'" [class.bg-warning]="task.priority === 'High'" [class.bg-info]="task.priority === 'Medium'">{{ task.priority }}</span></td>
+                            <td><span class="badge" [class.bg-warning]="task.status === 'Pending'" [class.bg-primary]="task.status === 'InProgress'" [class.bg-success]="task.status === 'Completed'">{{ task.status }}</span></td>
+                            <td [class.text-danger]="isOverdue(task.dueDate)">{{ task.dueDate | date:'dd MMM yyyy' }}<span *ngIf="isOverdue(task.dueDate)" class="badge bg-danger ms-2">Overdue</span></td>
+                            <td><select class="form-select form-select-sm" (change)="updateTaskStatus(task.id, $event)"><option value="Pending" [selected]="task.status === 'Pending'">Pending</option><option value="InProgress" [selected]="task.status === 'InProgress'">In Progress</option><option value="Completed" [selected]="task.status === 'Completed'">Completed</option></select></td>
+                        </tr>
+                        <tr *ngIf="tasks.length === 0"><td colspan="6" class="text-center">No tasks found</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LEAVE APPLICATIONS PAGE -->
+<div *ngIf="activeTab === 'leaves'" class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">📅 Leave Applications</h4>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary mb-3" (click)="openApplyLeave()">+ Apply for Leave</button>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Total Days</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let leave of leaves">
+                            <td>{{ leave.leaveType }}</td>
+                            <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
+                            <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
+                            <td>{{ leave.totalDays }}</td>
+                            <td>{{ leave.reason }}</td>
+                            <td><span class="badge" [class.bg-warning]="leave.status === 'Pending'" [class.bg-success]="leave.status === 'Approved'" [class.bg-danger]="leave.status === 'Rejected'">{{ leave.status }}</span></td>
+                            <td><button class="btn btn-danger btn-sm" (click)="cancelLeave(leave.id)" *ngIf="leave.status === 'Pending'">Cancel</button></td>
+                        </tr>
+                        <tr *ngIf="leaves.length === 0"><td colspan="7" class="text-center">No leave applications found</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ATTENDANCE HISTORY PAGE -->
+<div *ngIf="activeTab === 'attendance'" class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">📊 Attendance History</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <select class="form-select" [(ngModel)]="selectedMonth" (change)="loadAttendanceHistory()">
+                        <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                        <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                        <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                        <option value="10">October</option><option value="11">November</option><option value="12">December</option>
                     </select>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Title</th>
-                                <th>Description</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Due Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let task of tasks">
-                                <td>{{ task.title }}</td>
-                                <td>{{ task.description }}</td>
-                                <td>
-                                    <span class="badge" [class.bg-danger]="task.priority === 'Urgent'"
-                                          [class.bg-warning]="task.priority === 'High'"
-                                          [class.bg-info]="task.priority === 'Medium'"
-                                          [class.bg-secondary]="task.priority === 'Low'">
-                                        {{ task.priority }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge" [class.bg-warning]="task.status === 'Pending'"
-                                          [class.bg-primary]="task.status === 'InProgress'"
-                                          [class.bg-success]="task.status === 'Completed'">
-                                        {{ task.status }}
-                                    </span>
-                                </td>
-                                <td [class.text-danger]="isOverdue(task.dueDate)">
-                                    {{ task.dueDate | date:'dd MMM yyyy' }}
-                                    <span *ngIf="isOverdue(task.dueDate)" class="badge bg-danger ms-2">Overdue</span>
-                                </td>
-                                <td>
-                                    <select class="form-select form-select-sm" (change)="updateTaskStatus(task.id, $event)">
-                                        <option value="Pending" [selected]="task.status === 'Pending'">Pending</option>
-                                        <option value="InProgress" [selected]="task.status === 'InProgress'">In Progress</option>
-                                        <option value="Completed" [selected]="task.status === 'Completed'">Completed</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr *ngIf="tasks.length === 0">
-                                <td colspan="6" class="text-center">No tasks found</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="col-md-3">
+                    <select class="form-select" [(ngModel)]="selectedYear" (change)="loadAttendanceHistory()">
+                        <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
+                    </select>
                 </div>
             </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Status</th>
+                            <th>Total Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let att of attendanceHistory">
+                            <td>{{ att.date | date:'dd MMM yyyy' }}</td>
+                            <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
+                            <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
+                            <td><span class="badge" [class.bg-success]="att.status === 'Present'" [class.bg-warning]="att.status === 'Late'">{{ att.status }}</span></td>
+                            <td>{{ att.totalWorkHours }} hrs</td>
+                            </tr>
+                        <tr *ngIf="attendanceHistory.length === 0"><td colspan="5" class="text-center">No attendance records found</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Leaves Tab -->
-            <div *ngIf="activeTab === 'leaves'">
-                <button class="btn btn-primary mb-3" (click)="openApplyLeave()">+ Apply for Leave</button>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Leave Type</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Total Days</th>
-                                <th>Reason</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let leave of leaves">
-                                <td>{{ leave.leaveType }}</td>
-                                <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
-                                <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
-                                <td>{{ leave.totalDays }}</td>
-                                <td>{{ leave.reason }}</td>
-                                <td>
-                                    <span class="badge" [class.bg-warning]="leave.status === 'Pending'"
-                                          [class.bg-success]="leave.status === 'Approved'"
-                                          [class.bg-danger]="leave.status === 'Rejected'">
-                                        {{ leave.status }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-danger btn-sm" 
-                                            (click)="cancelLeave(leave.id)" 
-                                            *ngIf="leave.status === 'Pending'">
-                                        Cancel
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr *ngIf="leaves.length === 0">
-                                <td colspan="7" class="text-center">No leave applications found</td>
-                            </tr>
-                        </tbody>
+<!-- MY PROFILE PAGE -->
+<div *ngIf="activeTab === 'profile'" class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">👤 My Profile</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Personal Information</h5>
+                    <table class="table table-bordered">
+                        <tr><th>Full Name:</th><td>{{ fullName }}</td></tr>
+                        <tr><th>Email:</th><td>{{ email }}</td></tr>
+                        <tr><th>Phone:</th><td>{{ phone || 'Not provided' }}</td></tr>
+                        <tr><th>Address:</th><td>{{ address || 'Not provided' }}</td></tr>
                     </table>
                 </div>
-            </div>
-
-            <!-- Attendance History Tab -->
-            <div *ngIf="activeTab === 'attendance'">
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <select class="form-select" [(ngModel)]="selectedMonth" (change)="loadAttendanceHistory()">
-                            <option value="1">January</option>
-                            <option value="2">February</option>
-                            <option value="3">March</option>
-                            <option value="4">April</option>
-                            <option value="5">May</option>
-                            <option value="6">June</option>
-                            <option value="7">July</option>
-                            <option value="8">August</option>
-                            <option value="9">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select" [(ngModel)]="selectedYear" (change)="loadAttendanceHistory()">
-                            <option value="2023">2023</option>
-                            <option value="2024">2024</option>
-                            <option value="2025">2025</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Date</th>
-                                <th>Check In</th>
-                                <th>Check Out</th>
-                                <th>Status</th>
-                                <th>Total Hours</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let att of attendanceHistory">
-                                <td>{{ att.date | date:'dd MMM yyyy' }}</td>
-                                <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
-                                <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
-                                <td>
-                                    <span class="badge" [class.bg-success]="att.status === 'Present'"
-                                          [class.bg-warning]="att.status === 'Late'">
-                                        {{ att.status }}
-                                    </span>
-                                </td>
-                                <td>{{ att.totalWorkHours }} hrs</td>
-                            </tr>
-                            <tr *ngIf="attendanceHistory.length === 0">
-                                <td colspan="5" class="text-center">No attendance records found</td>
-                            </tr>
-                        </tbody>
+                <div class="col-md-6">
+                    <h5>Work Information</h5>
+                    <table class="table table-bordered">
+                        <tr><th>Department:</th><td>{{ departmentName }}</tr>
+                        <tr><th>Designation:</th><td>{{ designation }}</td>
+                        <tr><th>Salary:</th><td>{{ salary | currency }}</td>
+                        <tr><th>Joining Date:</th><td>{{ joiningDate | date:'dd MMM yyyy' }}</td>
                     </table>
-                </div>
-            </div>
-
-            <!-- Profile Tab -->
-            <div *ngIf="activeTab === 'profile'">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h5>Personal Information</h5>
-                        <table class="table">
-                            <tr>
-                                <th>Full Name:</th>
-                                <td>{{ fullName }}</td>
-                            </tr>
-                            <tr>
-                                <th>Email:</th>
-                                <td>{{ email }}</td>
-                            </tr>
-                            <tr>
-                                <th>Phone:</th>
-                                <td>{{ phone || 'Not provided' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Address:</th>
-                                <td>{{ address || 'Not provided' }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h5>Work Information</h5>
-                        <table class="table">
-                            <tr>
-                                <th>Department:</th>
-                                <td>{{ departmentName }}</td>
-                            </tr>
-                            <tr>
-                                <th>Designation:</th>
-                                <td>{{ designation }}</td>
-                            </tr>
-                            <tr>
-                                <th>Salary:</th>
-                                <td>{{ salary | currency }}</td>
-                            </tr>
-                            <tr>
-                                <th>Joining Date:</th>
-                                <td>{{ joiningDate | date:'dd MMM yyyy' }}</td>
-                            </tr>
-                        </table>
-                    </div>
                 </div>
             </div>
         </div>
@@ -400,30 +349,11 @@
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Apply for Leave</h4>
             <div class="alert alert-danger" *ngIf="leaveError">{{ leaveError }}</div>
-            <div class="mb-3">
-                <label class="form-label">Leave Type</label>
-                <select class="form-select" [(ngModel)]="leaveRequest.leaveType">
-                    <option value="Annual">Annual Leave</option>
-                    <option value="Sick">Sick Leave</option>
-                    <option value="Casual">Casual Leave</option>
-                    <option value="Unpaid">Unpaid Leave</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Start Date</label>
-                <input type="date" class="form-control" [(ngModel)]="leaveRequest.startDate">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">End Date</label>
-                <input type="date" class="form-control" [(ngModel)]="leaveRequest.endDate">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Reason</label>
-                <textarea class="form-control" rows="3" [(ngModel)]="leaveRequest.reason"></textarea>
-            </div>
-            <button class="btn btn-success w-100" (click)="submitLeave()" [disabled]="submitting">
-                {{ submitting ? 'Submitting...' : 'Submit Application' }}
-            </button>
+            <div class="mb-3"><label class="form-label">Leave Type</label><select class="form-select" [(ngModel)]="leaveRequest.leaveType"><option value="Annual">Annual Leave</option><option value="Sick">Sick Leave</option><option value="Casual">Casual Leave</option><option value="Unpaid">Unpaid Leave</option></select></div>
+            <div class="mb-3"><label class="form-label">Start Date</label><input type="date" class="form-control" [(ngModel)]="leaveRequest.startDate"></div>
+            <div class="mb-3"><label class="form-label">End Date</label><input type="date" class="form-control" [(ngModel)]="leaveRequest.endDate"></div>
+            <div class="mb-3"><label class="form-label">Reason</label><textarea class="form-control" rows="3" [(ngModel)]="leaveRequest.reason"></textarea></div>
+            <button class="btn btn-success w-100" (click)="submitLeave()" [disabled]="submitting">{{ submitting ? 'Submitting...' : 'Submit Application' }}</button>
             <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
         </div>
     </div>
@@ -436,30 +366,12 @@
             <h4 class="mb-3">Edit Profile</h4>
             <div class="alert alert-danger" *ngIf="profileError">{{ profileError }}</div>
             <div class="alert alert-success" *ngIf="profileSuccess">{{ profileSuccess }}</div>
-            <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-control" [(ngModel)]="editFullName">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Phone</label>
-                <input type="text" class="form-control" [(ngModel)]="editPhone">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Address</label>
-                <textarea class="form-control" rows="2" [(ngModel)]="editAddress"></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Profile Image</label>
-                <input type="file" class="form-control" accept="image/*" (change)="onImageSelected($event)">
-            </div>
-            @if (imagePreview) {
-                <div class="text-center mb-3">
-                    <img [src]="imagePreview" class="preview-img" alt="Preview">
-                </div>
-            }
-            <button class="btn btn-success w-100" (click)="updateProfile()" [disabled]="updating">
-                {{ updating ? 'Saving...' : 'Save Changes' }}
-            </button>
+            <div class="mb-3"><label class="form-label">Full Name</label><input type="text" class="form-control" [(ngModel)]="editFullName"></div>
+            <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" [(ngModel)]="editPhone"></div>
+            <div class="mb-3"><label class="form-label">Address</label><textarea class="form-control" rows="2" [(ngModel)]="editAddress"></textarea></div>
+            <div class="mb-3"><label class="form-label">Profile Image</label><input type="file" class="form-control" accept="image/*" (change)="onImageSelected($event)"></div>
+            @if (imagePreview) { <div class="text-center mb-3"><img [src]="imagePreview" class="preview-img" alt="Preview"></div> }
+            <button class="btn btn-success w-100" (click)="updateProfile()" [disabled]="updating">{{ updating ? 'Saving...' : 'Save Changes' }}</button>
             <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
         </div>
     </div>
@@ -472,22 +384,278 @@
             <h4 class="mb-3">Change Password</h4>
             <div class="alert alert-danger" *ngIf="passwordError">{{ passwordError }}</div>
             <div class="alert alert-success" *ngIf="passwordSuccess">{{ passwordSuccess }}</div>
-            <div class="mb-3">
-                <label class="form-label">Current Password</label>
-                <input type="password" class="form-control" [(ngModel)]="currentPassword">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">New Password (min 6 characters)</label>
-                <input type="password" class="form-control" [(ngModel)]="newPassword">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Confirm New Password</label>
-                <input type="password" class="form-control" [(ngModel)]="confirmPassword">
-            </div>
-            <button class="btn btn-success w-100" (click)="changePassword()" [disabled]="changingPassword">
-                {{ changingPassword ? 'Changing...' : 'Change Password' }}
-            </button>
+            <div class="mb-3"><label class="form-label">Current Password</label><input type="password" class="form-control" [(ngModel)]="currentPassword"></div>
+            <div class="mb-3"><label class="form-label">New Password (min 6 characters)</label><input type="password" class="form-control" [(ngModel)]="newPassword"></div>
+            <div class="mb-3"><label class="form-label">Confirm New Password</label><input type="password" class="form-control" [(ngModel)]="confirmPassword"></div>
+            <button class="btn btn-success w-100" (click)="changePassword()" [disabled]="changingPassword">{{ changingPassword ? 'Changing...' : 'Change Password' }}</button>
             <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
         </div>
     </div>
 }
+
+<style>
+    /* Sidebar styles */
+    .sidebar { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        height: 100%; 
+        width: 260px; 
+        background: white; 
+        box-shadow: 4px 0 20px rgba(0,0,0,0.15); 
+        z-index: 1200; 
+        transform: translateX(-100%); 
+        transition: transform 0.3s ease; 
+        display: flex; 
+        flex-direction: column; 
+    }
+    .sidebar.sidebar-open { transform: translateX(0); }
+    .sidebar-header { 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 18px 20px; 
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+        color: white; 
+    }
+    .sidebar-close-btn { 
+        background: rgba(255,255,255,0.15); 
+        border: none; 
+        color: white; 
+        width: 28px; 
+        height: 28px; 
+        border-radius: 6px; 
+        cursor: pointer; 
+    }
+    .sidebar-menu { padding: 12px 0; flex: 1; }
+    .sidebar-item { 
+        display: flex; 
+        align-items: center; 
+        gap: 14px; 
+        padding: 13px 22px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        font-weight: 500; 
+        color: #444; 
+        transition: all 0.2s ease; 
+        border-left: 3px solid transparent; 
+    }
+    .sidebar-item:hover { 
+        background: #f0f0f8; 
+        color: #1a1a2e; 
+        border-left-color: #1a1a2e; 
+    }
+    .sidebar-item-active { 
+        background: #eeeef8; 
+        color: #1a1a2e; 
+        font-weight: 700; 
+        border-left-color: #1a1a2e !important; 
+    }
+    .sidebar-icon { font-size: 18px; width: 24px; text-align: center; }
+    .sidebar-label { flex: 1; }
+    .sidebar-overlay, .click-outside-overlay { 
+        position: fixed; 
+        inset: 0; 
+        background: rgba(0,0,0,0.35); 
+        z-index: 1100; 
+    }
+
+    /* Profile Menu Styles */
+    .profile-wrapper { 
+        cursor: pointer; 
+        position: relative; 
+        z-index: 1300; 
+    }
+    .profile-img { 
+        width: 42px; 
+        height: 42px; 
+        border-radius: 50%; 
+        object-fit: cover; 
+        border: 2px solid white; 
+    }
+    .profile-placeholder { 
+        width: 42px; 
+        height: 42px; 
+        border-radius: 50%; 
+        background: white; 
+        color: #1a1a2e; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 18px; 
+        font-weight: bold; 
+        border: 2px solid white; 
+        cursor: pointer; 
+    }
+    
+    .profile-menu { 
+        position: fixed; 
+        top: 70px; 
+        right: 20px; 
+        background: white; 
+        border-radius: 12px; 
+        box-shadow: 0 20px 40px rgba(0,0,0,0.25); 
+        width: 280px; 
+        z-index: 1400; 
+        border: 1px solid #e0e0e0;
+        animation: slideDown 0.2s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .profile-menu-header {
+        padding: 20px 20px 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .menu-profile-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #1a1a2e;
+    }
+    .menu-profile-placeholder {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: bold;
+    }
+    .menu-name {
+        margin: 0;
+        font-weight: 600;
+        font-size: 16px;
+        color: #1a1a2e;
+    }
+    .menu-email {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+    }
+    .menu-divider {
+        margin: 0;
+        border: none;
+        border-top: 1px solid #eee;
+    }
+    .menu-item {
+        padding: 15px 20px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+    }
+    .menu-item:hover {
+        background: #f8f9ff;
+        color: #1a1a2e;
+    }
+    .menu-item.text-danger {
+        color: #dc3545 !important;
+    }
+    .menu-item.text-danger:hover {
+        background: #fff5f5 !important;
+    }
+
+    /* Navbar styles */
+    .navbar { 
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important; 
+        padding: 10px 20px; 
+        z-index: 1000;
+    }
+    .menu-toggle-btn { 
+        background: transparent; 
+        border: none; 
+        cursor: pointer; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 5px; 
+        padding: 6px 8px; 
+        border-radius: 6px; 
+        margin-right: 10px; 
+    }
+    .menu-bar { 
+        display: block; 
+        width: 22px; 
+        height: 2px; 
+        background: white; 
+        border-radius: 2px; 
+    }
+
+    /* Other styles */
+    .welcome-card { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        color: white; 
+    }
+    .employee-photo-large { 
+        width: 120px; 
+        height: 120px; 
+        border-radius: 50%; 
+        object-fit: cover; 
+        border: 3px solid white; 
+    }
+    .employee-photo-placeholder-large { 
+        width: 120px; 
+        height: 120px; 
+        border-radius: 50%; 
+        background: rgba(255,255,255,0.3); 
+        color: white; 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 48px; 
+        font-weight: bold; 
+    }
+    .stat-card { 
+        border-radius: 10px; 
+        transition: transform 0.3s; 
+    }
+    .stat-card:hover { 
+        transform: translateY(-5px); 
+    }
+    .badge.bg-danger { 
+        font-size: 10px; 
+        padding: 2px 6px; 
+        margin-left: 5px; 
+    }
+    .text-danger { 
+        color: #dc3545 !important; 
+        font-weight: bold; 
+    }
+    .modal-overlay { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background: rgba(0,0,0,0.5); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        z-index: 2000; 
+    }
+    .modal-box { 
+        background: white; 
+        border-radius: 15px; 
+        padding: 25px; 
+        width: 450px; 
+        max-width: 90%; 
+    }
+    .preview-img { 
+        width: 80px; 
+        height: 80px; 
+        border-radius: 50%; 
+        object-fit: cover; 
+        border: 3px solid #1a1a2e; 
+    }
+</style>

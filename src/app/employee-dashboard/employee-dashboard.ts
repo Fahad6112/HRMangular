@@ -1,4 +1,4 @@
-import { Component, OnInit, PLATFORM_ID, Inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, Inject, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser, DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -81,7 +81,9 @@ export class EmployeeDashboardComponent implements OnInit {
     
     // UI State
     showMenu: boolean = false;
-    activeTab: string = 'tasks';
+    showSidebar: boolean = false;
+    activeTab: string = '';
+    showHomePage: boolean = true;
     
     constructor(
         private router: Router,
@@ -105,17 +107,135 @@ export class EmployeeDashboardComponent implements OnInit {
             return;
         }
         
-        this.loadEmployeeData();
-    }
-    
-    loadEmployeeData() {
+        // CRITICAL: Set initial state to show welcome page
+        this.showHomePage = true;
+        this.activeTab = '';
+        
+        // Load data in background (doesn't affect welcome page visibility)
         this.loadProfile();
         this.loadDashboardStats();
-        this.loadTasks();
-        this.loadLeaves();
         this.loadTodayAttendance();
+        
+        // Load tasks and leaves in background but don't show them
+        this.loadTasksBackground();
+        this.loadLeavesBackground();
     }
     
+    // Background data loading - doesn't change UI
+    loadTasksBackground() {
+        const token = localStorage.getItem('token');
+        const url = `https://localhost:7141/api/employee-dashboard/tasks`;
+        
+        fetch(url, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.tasks = Array.isArray(data) ? data : [];
+            this.cdr.detectChanges();
+        })
+        .catch(error => {
+            console.error('Error loading tasks:', error);
+            this.tasks = [];
+        });
+    }
+    
+    loadLeavesBackground() {
+        const token = localStorage.getItem('token');
+        
+        fetch('https://localhost:7141/api/employee-dashboard/leaves', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.leaves = data;
+            this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error loading leaves:', error));
+    }
+
+    // ==================== CLICK OUTSIDE HANDLER ====================
+    @HostListener('document:click', ['$event'])
+    onDocumentClick(event: any) {
+        const profileWrapper = document.querySelector('.profile-wrapper');
+        const profileMenu = document.querySelector('.profile-menu');
+        
+        if (this.showMenu && 
+            profileWrapper && !profileWrapper.contains(event.target as Node) && 
+            profileMenu && !profileMenu.contains(event.target as Node)) {
+            this.showMenu = false;
+            this.cdr.detectChanges();
+        }
+    }
+
+    // ==================== SIDEBAR METHODS ====================
+    toggleSidebar() {
+        this.showSidebar = !this.showSidebar;
+        this.showMenu = false;
+        this.cdr.detectChanges();
+    }
+    
+    closeSidebar() {
+        this.showSidebar = false;
+        this.cdr.detectChanges();
+    }
+    
+    // Go to Home/Welcome Page - Called when clicking HRMApp brand
+    goToHome() {
+        this.showHomePage = true;
+        this.activeTab = '';
+        this.showSidebar = false;
+        this.showMenu = false;
+        this.cdr.detectChanges();
+    }
+    
+    // ==================== PROFILE MENU METHODS ====================
+    toggleMenu() {
+        this.showMenu = !this.showMenu;
+        this.showSidebar = false;
+        this.cdr.detectChanges();
+    }
+    
+    openEditProfile() {
+        this.showMenu = false;
+        this.showEditProfile = true;
+        this.showChangePassword = false;
+        this.profileError = '';
+        this.profileSuccess = '';
+        this.editFullName = this.fullName;
+        this.editPhone = this.phone || '';
+        this.editAddress = this.address || '';
+        this.selectedImage = null;
+        this.imagePreview = null;
+        this.cdr.detectChanges();
+    }
+    
+    openChangePassword() {
+        this.showMenu = false;
+        this.showChangePassword = true;
+        this.showEditProfile = false;
+        this.passwordError = '';
+        this.passwordSuccess = '';
+        this.currentPassword = '';
+        this.newPassword = '';
+        this.confirmPassword = '';
+        this.cdr.detectChanges();
+    }
+    
+    closeModals() {
+        this.showEditProfile = false;
+        this.showChangePassword = false;
+        this.showLeaveModal = false;
+        this.showMenu = false;
+        this.profileError = '';
+        this.passwordError = '';
+        this.leaveError = '';
+        this.cdr.detectChanges();
+    }
+    
+    // ==================== LOAD DATA METHODS (For sidebar navigation) ====================
     loadProfile() {
         const token = localStorage.getItem('token');
         
@@ -194,6 +314,11 @@ export class EmployeeDashboardComponent implements OnInit {
     loadAttendanceHistory() {
         const token = localStorage.getItem('token');
         
+        // Hide welcome page and show attendance history
+        this.showHomePage = false;
+        this.activeTab = 'attendance';
+        this.showSidebar = false;
+        
         fetch(`https://localhost:7141/api/employee-dashboard/attendance/history?month=${this.selectedMonth}&year=${this.selectedYear}`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
@@ -211,21 +336,18 @@ export class EmployeeDashboardComponent implements OnInit {
         const statusParam = this.taskFilter ? `?status=${this.taskFilter}` : '';
         const url = `https://localhost:7141/api/employee-dashboard/tasks${statusParam}`;
         
-        console.log('Loading tasks from:', url);
-        console.log('Employee ID:', this.employeeId);
+        // Hide welcome page and show tasks
+        this.showHomePage = false;
+        this.activeTab = 'tasks';
+        this.showSidebar = false;
         
         fetch(url, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         })
-        .then(response => {
-            console.log('Tasks response status:', response.status);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log('Tasks data received:', data);
             this.tasks = Array.isArray(data) ? data : [];
-            console.log('Number of tasks:', this.tasks.length);
             this.cdr.detectChanges();
         })
         .catch(error => {
@@ -237,6 +359,11 @@ export class EmployeeDashboardComponent implements OnInit {
     
     loadLeaves() {
         const token = localStorage.getItem('token');
+        
+        // Hide welcome page and show leaves
+        this.showHomePage = false;
+        this.activeTab = 'leaves';
+        this.showSidebar = false;
         
         fetch('https://localhost:7141/api/employee-dashboard/leaves', {
             method: 'GET',
@@ -250,6 +377,15 @@ export class EmployeeDashboardComponent implements OnInit {
         .catch(error => console.error('Error loading leaves:', error));
     }
     
+    showProfile() {
+        // Hide welcome page and show profile
+        this.showHomePage = false;
+        this.activeTab = 'profile';
+        this.showSidebar = false;
+        this.cdr.detectChanges();
+    }
+    
+    // ==================== ATTENDANCE ACTIONS ====================
     checkIn() {
         const token = localStorage.getItem('token');
         
@@ -290,6 +426,7 @@ export class EmployeeDashboardComponent implements OnInit {
         });
     }
     
+    // ==================== TASK ACTIONS ====================
     updateTaskStatus(taskId: number, event: any) {
         const token = localStorage.getItem('token');
         const status = event.target.value;
@@ -317,6 +454,7 @@ export class EmployeeDashboardComponent implements OnInit {
         return new Date(dueDate) < new Date();
     }
     
+    // ==================== LEAVE ACTIONS ====================
     openApplyLeave() {
         this.leaveRequest = {
             leaveType: 'Annual',
@@ -382,35 +520,7 @@ export class EmployeeDashboardComponent implements OnInit {
         .catch(error => console.error('Error cancelling leave:', error));
     }
     
-    openEditProfile() {
-        this.showMenu = false;
-        this.showEditProfile = true;
-        this.showChangePassword = false;
-        this.profileError = '';
-        this.profileSuccess = '';
-        this.cdr.detectChanges();
-    }
-    
-    openChangePassword() {
-        this.showMenu = false;
-        this.showChangePassword = true;
-        this.showEditProfile = false;
-        this.currentPassword = '';
-        this.newPassword = '';
-        this.confirmPassword = '';
-        this.passwordError = '';
-        this.passwordSuccess = '';
-        this.cdr.detectChanges();
-    }
-    
-    closeModals() {
-        this.showEditProfile = false;
-        this.showChangePassword = false;
-        this.showLeaveModal = false;
-        this.showMenu = false;
-        this.cdr.detectChanges();
-    }
-    
+    // ==================== PROFILE UPDATE ACTIONS ====================
     onImageSelected(event: any) {
         const file = event.target.files[0];
         if (file) {
@@ -528,11 +638,6 @@ export class EmployeeDashboardComponent implements OnInit {
         });
     }
     
-    toggleMenu() {
-        this.showMenu = !this.showMenu;
-        this.cdr.detectChanges();
-    }
-    
     logout() {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
@@ -541,6 +646,7 @@ export class EmployeeDashboardComponent implements OnInit {
         localStorage.removeItem('profileImage');
         localStorage.removeItem('employeeId');
         localStorage.removeItem('designation');
+        this.showMenu = false;
         this.router.navigate(['/login']);
     }
 }

@@ -402,3 +402,38 @@
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+.profile-wrapper {
+    cursor: pointer;
+    position: relative;
+    z-index: 1002;
+}
+
+.profile-menu {
+    position: absolute;
+    top: 65px;
+    right: 15px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    width: 250px;
+    z-index: 1003;
+    animation: fadeIn 0.2s ease;
+}
+
+.click-outside-overlay {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 1000;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1099;
+}
+
+.sidebar {
+    z-index: 1100;
+}
