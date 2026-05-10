@@ -1,85 +1,59 @@
 <nav class="navbar navbar-expand-sm navbar-dark">
     <div class="container-fluid">
-        <!-- Hamburger Menu Button -->
         <button class="menu-toggle-btn" (click)="toggleSidebar(); $event.stopPropagation()">
             <span class="menu-bar"></span>
             <span class="menu-bar"></span>
             <span class="menu-bar"></span>
         </button>
-
         <a class="navbar-brand">HRMApp - Employees</a>
-
         <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
-            <!-- Profile Button -->
             <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
                 @if (profileImage) {
-                    <img
-                        [src]="apiUrl + profileImage"
-                        class="profile-img"
-                        alt="Profile"/>
+                    <img [src]="apiUrl + profileImage" class="profile-img" alt="Profile"/>
                 } @else {
-                    <div class="profile-placeholder">
-                        {{ email.charAt(0).toUpperCase() }}
-                    </div>
+                    <div class="profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
                 }
             </div>
-
-            <!-- Popup Menu -->
             @if (showMenu) {
                 <div class="profile-menu" (click)="$event.stopPropagation()">
                     <div class="profile-menu-header">
                         @if (profileImage) {
-                            <img
-                                [src]="apiUrl + profileImage"
-                                class="menu-profile-img"
-                                alt="Profile"/>
+                            <img [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
                         } @else {
-                            <div class="menu-profile-placeholder">
-                                {{ email.charAt(0).toUpperCase() }}
-                            </div>
+                            <div class="menu-profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
                         }
                         <div>
                             <p class="menu-name">{{ fullName }}</p>
                             <p class="menu-email">{{ email }}</p>
                         </div>
                     </div>
-
                     <hr class="menu-divider"/>
-
-                    <div class="menu-item" (click)="logout()">
-                        🚪 Logout
-                    </div>
+                    <div class="menu-item" (click)="logout()">🚪 Logout</div>
                 </div>
             }
         </div>
     </div>
 </nav>
 
-<!-- Click-outside overlay for profile menu -->
 @if (showMenu) {
     <div class="click-outside-overlay" (click)="showMenu = false"></div>
 }
 
-<!-- Sidebar Overlay -->
 @if (showSidebar) {
     <div class="sidebar-overlay" (click)="showSidebar = false"></div>
 }
 
-<!-- Sidebar -->
 <div class="sidebar" [class.sidebar-open]="showSidebar">
     <div class="sidebar-header">
         <span class="sidebar-title">📋 Menu</span>
         <button class="sidebar-close-btn" (click)="showSidebar = false">✕</button>
     </div>
-
     <nav class="sidebar-menu">
-        <div class="sidebar-item"
-             (click)="goToAdmin(); showSidebar = false">
+        <div class="sidebar-item" (click)="goToAdmin(); showSidebar = false">
             <span class="sidebar-icon">👥</span>
             <span class="sidebar-label">User Dashboard</span>
         </div>
-        <div class="sidebar-item sidebar-item-active"
-             (click)="goToEmployees(); showSidebar = false">
+        <div class="sidebar-item sidebar-item-active" (click)="goToEmployees(); showSidebar = false">
             <span class="sidebar-icon">👨‍💼</span>
             <span class="sidebar-label">Employee Dashboard</span>
         </div>
@@ -87,11 +61,13 @@
 </div>
 
 <div class="container-fluid mt-4 px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>👨‍💼 Employee Management</h2>
-        <button class="btn btn-add" (click)="openAddModal()">
-            + Add Employee
-        </button>
+    <!-- Modern Page Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1>👨‍💼 Employee Management</h1>
+            <p>Manage all employees, departments, and roles.</p>
+        </div>
+        <button class="btn btn-add" (click)="openAddModal()">+ Add Employee</button>
     </div>
 
     <!-- Alerts -->
@@ -99,167 +75,112 @@
     <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
 
     <!-- Search and Filter -->
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="input-group">
-                <span class="input-group-text">🔍</span>
-                <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Search by name, email, designation..."
-                    [(ngModel)]="searchText"
-                    (input)="onSearch()"/>
+    <div class="content-card">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text">🔍</span>
+                    <input type="text" class="form-control" placeholder="Search by name, email, designation..." [(ngModel)]="searchText" (input)="onSearch()"/>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <select
-                class="form-select"
-                [(ngModel)]="selectedDepartmentId"
-                (change)="onDepartmentFilter()">
-                <option value="">All Departments</option>
-                @for (dept of departments; track dept.id) {
-                    <option [value]="dept.id">{{ dept.name }}</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-4 d-flex gap-2">
-            <button
-                class="btn"
-                [class.btn-primary]="currentStatus === 'active'"
-                [class.btn-outline-primary]="currentStatus !== 'active'"
-                (click)="filterByStatus('active')">
-                ✅ Active
-            </button>
-            <button
-                class="btn"
-                [class.btn-danger]="currentStatus === 'inactive'"
-                [class.btn-outline-danger]="currentStatus !== 'inactive'"
-                (click)="filterByStatus('inactive')">
-                ❌ Inactive
-            </button>
-            <button
-                class="btn btn-outline-secondary"
-                (click)="filterByStatus('all')">
-                👥 All
-            </button>
+            <div class="col-md-4">
+                <select class="form-select" [(ngModel)]="selectedDepartmentId" (change)="onDepartmentFilter()">
+                    <option value="">All Departments</option>
+                    @for (dept of departments; track dept.id) {
+                        <option [value]="dept.id">{{ dept.name }}</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button class="btn" [class.btn-primary]="currentStatus === 'active'" [class.btn-outline-primary]="currentStatus !== 'active'" (click)="filterByStatus('active')">✅ Active</button>
+                <button class="btn" [class.btn-danger]="currentStatus === 'inactive'" [class.btn-outline-danger]="currentStatus !== 'inactive'" (click)="filterByStatus('inactive')">❌ Inactive</button>
+                <button class="btn btn-outline-secondary" (click)="filterByStatus('all')">👥 All</button>
+            </div>
         </div>
     </div>
 
     <!-- Table -->
     @if (loading) {
-        <div class="text-center mt-5">
-            <div class="spinner-border" role="status"></div>
-        </div>
+        <div class="text-center mt-5"><div class="spinner-border" role="status"></div></div>
     } @else {
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>Photo</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Department</th>
-                        <th>Designation</th>
-                        <th>Salary</th>
-                        <th>Joining Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (emp of employees; track emp.id) {
-                        <tr [class.inactive-row]="!emp.isActive">
-                            <td>{{ (currentPage - 1) * pageSize + $index + 1 }}</td>
-                            <td>
-                                @if (emp.photo) {
-                                    <img
-                                        [src]="apiUrl + emp.photo"
-                                        class="table-photo"
-                                        alt="Photo"/>
-                                } @else {
-                                    <div class="table-photo-placeholder">
-                                        {{ emp.name.charAt(0).toUpperCase() }}
-                                    </div>
-                                }
-                            </td>
-                            <td>{{ emp.name }}</td>
-                            <td>{{ emp.email }}</td>
-                            <td>{{ emp.phone }}</td>
-                            <td>
-                                <span class="dept-badge">
-                                    {{ emp.departmentName }}
-                                </span>
-                            </td>
-                            <td>{{ emp.designation }}</td>
-                            <td>{{ emp.salary | currency }}</td>
-                            <td>{{ emp.joiningDate | date:'dd MMM yyyy' }}</td>
-                            <td>
-                                @if (emp.isActive) {
-                                    <span class="badge bg-success">Active</span>
-                                } @else {
-                                    <span class="badge bg-danger">Inactive</span>
-                                }
-                            </td>
-                            <td>
-                                <button
-                                    class="btn btn-info btn-sm me-1"
-                                    (click)="openViewModal(emp)">
-                                    View
-                                </button>
-                                <button
-                                    class="btn btn-warning btn-sm me-1"
-                                    (click)="openEditModal(emp)">
-                                    Edit
-                                </button>
-                                @if (emp.isActive) {
-                                    <button
-                                        class="btn btn-secondary btn-sm me-1"
-                                        (click)="deactivate(emp.id)">
-                                        Deactivate
-                                    </button>
-                                } @else {
-                                    <button
-                                        class="btn btn-success btn-sm me-1"
-                                        (click)="restore(emp.id)">
-                                        Restore
-                                    </button>
-                                }
-                                <button
-                                    class="btn btn-danger btn-sm"
-                                    (click)="delete(emp.id)">
-                                    Delete
-                                </button>
-                            </td>
+        <div class="content-card">
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Photo</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>Salary</th>
+                            <th>Joining Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @for (emp of employees; track emp.id) {
+                            <tr [class.inactive-row]="!emp.isActive">
+                                <td>{{ (currentPage - 1) * pageSize + $index + 1 }}</td>
+                                <td>
+                                    @if (emp.photo) {
+                                        <img [src]="apiUrl + emp.photo" class="table-photo" alt="Photo"/>
+                                    } @else {
+                                        <div class="table-photo-placeholder">{{ emp.name.charAt(0).toUpperCase() }}</div>
+                                    }
+                                </td>
+                                <td><strong>{{ emp.name }}</strong></td>
+                                <td>{{ emp.email }}</td>
+                                <td>{{ emp.phone }}</td>
+                                <td><span class="dept-badge">{{ emp.departmentName }}</span></td>
+                                <td>{{ emp.designation }}</td>
+                                <td>{{ emp.salary | currency }}</td>
+                                <td>{{ emp.joiningDate | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                    @if (emp.isActive) {
+                                        <span class="status-badge status-active">Active</span>
+                                    } @else {
+                                        <span class="status-badge status-inactive">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-info btn-sm me-1" (click)="openViewModal(emp)">View</button>
+                                    <button class="btn btn-warning btn-sm me-1" (click)="openEditModal(emp)">Edit</button>
+                                    @if (emp.isActive) {
+                                        <button class="btn btn-secondary btn-sm me-1" (click)="deactivate(emp.id)">Deactivate</button>
+                                    } @else {
+                                        <button class="btn btn-success btn-sm me-1" (click)="restore(emp.id)">Restore</button>
+                                    }
+                                    <button class="btn btn-danger btn-sm" (click)="delete(emp.id)">Delete</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
 
-        <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <p class="text-muted mb-0">
-                Showing {{ (currentPage - 1) * pageSize + 1 }}
-                to {{ Math.min(currentPage * pageSize, totalEmployees) }}
-                of {{ totalEmployees }} employees
-            </p>
-            <nav>
-                <ul class="pagination mb-0">
-                    <li class="page-item" [class.disabled]="currentPage === 1">
-                        <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
-                    </li>
-                    @for (page of getPages(); track page) {
-                        <li class="page-item" [class.active]="page === currentPage">
-                            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <p class="text-muted mb-0">Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalEmployees) }} of {{ totalEmployees }} employees</p>
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item" [class.disabled]="currentPage === 1">
+                            <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
                         </li>
-                    }
-                    <li class="page-item" [class.disabled]="currentPage === totalPages">
-                        <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-                    </li>
-                </ul>
-            </nav>
+                        @for (page of getPages(); track page) {
+                            <li class="page-item" [class.active]="page === currentPage">
+                                <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                            </li>
+                        }
+                        <li class="page-item" [class.disabled]="currentPage === totalPages">
+                            <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
         </div>
     }
 </div>
@@ -269,9 +190,7 @@
     <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box large" (click)="$event.stopPropagation()">
             <h4 class="mb-4">{{ isEditing ? '✏️ Edit Employee' : '➕ Add Employee' }}</h4>
-
             <div class="alert alert-danger" *ngIf="formError">{{ formError }}</div>
-
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Full Name *</label>
@@ -312,44 +231,25 @@
                     <input type="date" class="form-control" [(ngModel)]="form.joiningDate"/>
                 </div>
                 <div class="col-md-6 mb-3" *ngIf="!isEditing">
-    <label class="form-label">Temporary Password *</label>
-    <input 
-        type="password" 
-        class="form-control" 
-        [(ngModel)]="form.temporaryPassword" 
-        placeholder="Enter temporary password (min 6 characters)"/>
-    <small class="text-muted">Employee will use this password to login for the first time</small>
-</div>
+                    <label class="form-label">Temporary Password *</label>
+                    <input type="password" class="form-control" [(ngModel)]="form.temporaryPassword" placeholder="Enter temporary password (min 6 characters)"/>
+                    <small class="text-muted">Employee will use this password to login for the first time</small>
+                </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Photo</label>
-                    <input
-                        type="file"
-                        class="form-control"
-                        accept="image/*"
-                        (change)="onPhotoSelected($event)"/>
+                    <input type="file" class="form-control" accept="image/*" (change)="onPhotoSelected($event)"/>
                 </div>
                 <div class="col-md-12 mb-3">
                     <label class="form-label">Address *</label>
                     <textarea class="form-control" [(ngModel)]="form.address" rows="2" placeholder="Enter address"></textarea>
                 </div>
             </div>
-
             @if (photoPreview) {
-                <div class="text-center mb-3">
-                    <img [src]="photoPreview" class="preview-img" alt="Preview"/>
-                </div>
+                <div class="text-center mb-3"><img [src]="photoPreview" class="preview-img" alt="Preview"/></div>
             }
-
             <div class="d-flex gap-2">
-                <button
-                    class="btn btn-success flex-grow-1"
-                    (click)="saveEmployee()"
-                    [disabled]="saving">
-                    {{ saving ? 'Saving...' : (isEditing ? 'Update' : 'Add Employee') }}
-                </button>
-                <button class="btn btn-secondary flex-grow-1" (click)="closeModals()">
-                    Cancel
-                </button>
+                <button class="btn btn-success flex-grow-1" (click)="saveEmployee()" [disabled]="saving">{{ saving ? 'Saving...' : (isEditing ? 'Update' : 'Add Employee') }}</button>
+                <button class="btn btn-secondary flex-grow-1" (click)="closeModals()">Cancel</button>
             </div>
         </div>
     </div>
@@ -360,58 +260,212 @@
     <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-4">👨‍💼 Employee Details</h4>
-
             <div class="text-center mb-4">
                 @if (selectedEmployee.photo) {
-                    <img
-                        [src]="apiUrl + selectedEmployee.photo"
-                        class="view-photo"
-                        alt="Photo"/>
+                    <img [src]="apiUrl + selectedEmployee.photo" class="view-photo" alt="Photo"/>
                 } @else {
-                    <div class="view-photo-placeholder">
-                        {{ selectedEmployee.name.charAt(0).toUpperCase() }}
-                    </div>
+                    <div class="view-photo-placeholder">{{ selectedEmployee.name.charAt(0).toUpperCase() }}</div>
                 }
                 <h5 class="mt-2">{{ selectedEmployee.name }}</h5>
                 <p class="text-muted">{{ selectedEmployee.designation }}</p>
             </div>
-
             <div class="detail-grid">
-                <div class="detail-item">
-                    <span class="detail-label">Email</span>
-                    <span class="detail-value">{{ selectedEmployee.email }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Phone</span>
-                    <span class="detail-value">{{ selectedEmployee.phone }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Department</span>
-                    <span class="detail-value">{{ selectedEmployee.departmentName }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Salary</span>
-                    <span class="detail-value">{{ selectedEmployee.salary | currency }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Joining Date</span>
-                    <span class="detail-value">{{ selectedEmployee.joiningDate | date:'dd MMM yyyy' }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Status</span>
-                    <span class="detail-value">
-                        {{ selectedEmployee.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                </div>
-                <div class="detail-item full-width">
-                    <span class="detail-label">Address</span>
-                    <span class="detail-value">{{ selectedEmployee.address }}</span>
-                </div>
+                <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">{{ selectedEmployee.email }}</span></div>
+                <div class="detail-item"><span class="detail-label">Phone</span><span class="detail-value">{{ selectedEmployee.phone }}</span></div>
+                <div class="detail-item"><span class="detail-label">Department</span><span class="detail-value">{{ selectedEmployee.departmentName }}</span></div>
+                <div class="detail-item"><span class="detail-label">Salary</span><span class="detail-value">{{ selectedEmployee.salary | currency }}</span></div>
+                <div class="detail-item"><span class="detail-label">Joining Date</span><span class="detail-value">{{ selectedEmployee.joiningDate | date:'dd MMM yyyy' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">{{ selectedEmployee.isActive ? 'Active' : 'Inactive' }}</span></div>
+                <div class="detail-item full-width"><span class="detail-label">Address</span><span class="detail-value">{{ selectedEmployee.address }}</span></div>
             </div>
-
-            <button class="btn btn-secondary w-100 mt-3" (click)="closeModals()">
-                Close
-            </button>
+            <button class="btn btn-secondary w-100 mt-3" (click)="closeModals()">Close</button>
         </div>
     </div>
 }
+
+<style>
+    /* ===== MODERN DASHBOARD CSS ===== */
+    .dashboard-header {
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    .header-content h1 {
+        margin: 0 0 8px 0;
+        color: #1e293b;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+    .header-content p {
+        margin: 0;
+        color: #64748b;
+        font-size: 16px;
+    }
+    .btn-add {
+        background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    }
+
+    /* Content Card */
+    .content-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        margin-bottom: 24px;
+    }
+
+    /* Modern Table */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .modern-table th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .modern-table td {
+        padding: 14px 16px;
+        color: #334155;
+        font-size: 14px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .modern-table tr:hover td {
+        background: #f8fafc;
+    }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-inactive { background: #fee2e2; color: #991b1b; }
+
+    .table-photo {
+        width: 40px; height: 40px; border-radius: 50%;
+        object-fit: cover; border: 2px solid #e2e8f0;
+    }
+    .table-photo-placeholder {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; display: inline-flex;
+        align-items: center; justify-content: center;
+        font-size: 14px; font-weight: bold;
+    }
+    .dept-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .inactive-row { background: #fff5f5 !important; opacity: 0.8; }
+
+    /* View Modal */
+    .view-photo {
+        width: 100px; height: 100px; border-radius: 50%;
+        object-fit: cover; border: 3px solid #e2e8f0;
+    }
+    .view-photo-placeholder {
+        width: 100px; height: 100px; border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; display: inline-flex;
+        align-items: center; justify-content: center;
+        font-size: 40px; font-weight: bold;
+    }
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+    .detail-item.full-width {
+        grid-column: 1 / -1;
+    }
+    .detail-label {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .detail-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    /* ===== EXISTING SIDEBAR & NAVBAR STYLES (PRESERVED) ===== */
+    .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 260px; background: white; box-shadow: 4px 0 20px rgba(0,0,0,0.15); z-index: 1200; transform: translateX(-100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+    .sidebar.sidebar-open { transform: translateX(0); }
+    .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; }
+    .sidebar-close-btn { background: rgba(255,255,255,0.15); border: none; color: white; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; }
+    .sidebar-menu { padding: 12px 0; flex: 1; }
+    .sidebar-item { display: flex; align-items: center; gap: 14px; padding: 13px 22px; cursor: pointer; font-size: 14px; font-weight: 500; color: #444; transition: all 0.2s ease; border-left: 3px solid transparent; }
+    .sidebar-item:hover { background: #f0f0f8; color: #1a1a2e; border-left-color: #1a1a2e; }
+    .sidebar-item-active { background: #eeeef8; color: #1a1a2e; font-weight: 700; border-left-color: #1a1a2e !important; }
+    .sidebar-icon { font-size: 18px; width: 24px; text-align: center; }
+    .sidebar-label { flex: 1; }
+    .sidebar-overlay, .click-outside-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1100; }
+    .profile-wrapper { cursor: pointer; position: relative; z-index: 1300; }
+    .profile-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
+    .profile-placeholder { width: 42px; height: 42px; border-radius: 50%; background: white; color: #1a1a2e; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; border: 2px solid white; cursor: pointer; }
+    .profile-menu { position: fixed; top: 70px; right: 20px; background: white; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); width: 280px; z-index: 1400; border: 1px solid #e0e0e0; animation: slideDown 0.2s ease-out; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .profile-menu-header { padding: 20px 20px 15px; display: flex; align-items: center; gap: 15px; }
+    .menu-profile-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 3px solid #1a1a2e; }
+    .menu-profile-placeholder { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+    .menu-name { margin: 0; font-weight: 600; font-size: 16px; color: #1a1a2e; }
+    .menu-email { margin: 0; font-size: 14px; color: #666; }
+    .menu-divider { margin: 0; border: none; border-top: 1px solid #eee; }
+    .menu-item { padding: 15px 20px; cursor: pointer; transition: background 0.2s ease; display: flex; align-items: center; gap: 12px; font-size: 15px; }
+    .menu-item:hover { background: #f8f9ff; color: #1a1a2e; }
+    .menu-item.text-danger { color: #dc3545 !important; }
+    .menu-item.text-danger:hover { background: #fff5f5 !important; }
+    .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important; padding: 10px 20px; z-index: 1000; }
+    .menu-toggle-btn { background: transparent; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 6px 8px; border-radius: 6px; margin-right: 10px; }
+    .menu-bar { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+    .modal-box { background: white; border-radius: 15px; padding: 25px; width: 450px; max-width: 90%; }
+    .modal-box.large { width: 700px; }
+    .preview-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #1a1a2e; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .detail-grid { grid-template-columns: 1fr; }
+    }
+</style>

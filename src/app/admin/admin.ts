@@ -113,6 +113,7 @@ export class AdminComponent implements OnInit {
         @Inject(PLATFORM_ID) private platformId: Object
     ) {}
 
+    activeMenu: string = ''; // Track which subitem is active
     ngOnInit() {
         if (!isPlatformBrowser(this.platformId)) return;
 

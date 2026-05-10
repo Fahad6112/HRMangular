@@ -6,31 +6,26 @@
             <span class="menu-bar"></span>
         </button>
         <a class="navbar-brand" (click)="goToHome()" style="cursor: pointer;">HRMApp - Employee Dashboard</a>
-
         <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
             <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
                 @if (profileImage) {
                     <img [src]="apiUrl + profileImage" class="profile-img" alt="Profile"/>
                 } @else {
-                    <div class="profile-placeholder">
-                        {{ email.charAt(0).toUpperCase() }}
-                    </div>
+                    <div class="profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
                 }
             </div>
         </div>
     </div>
 </nav>
 
-<!-- Profile Menu - Outside navbar -->
+<!-- Profile Menu -->
 @if (showMenu) {
     <div class="profile-menu" (click)="$event.stopPropagation()">
         <div class="profile-menu-header">
             @if (profileImage) {
                 <img [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
             } @else {
-                <div class="menu-profile-placeholder">
-                    {{ email.charAt(0).toUpperCase() }}
-                </div>
+                <div class="menu-profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
             }
             <div>
                 <p class="menu-name">{{ fullName }}</p>
@@ -44,7 +39,6 @@
     </div>
 }
 
-<!-- Click-outside overlay for profile menu -->
 @if (showMenu) {
     <div class="click-outside-overlay" (click)="showMenu = false"></div>
 }
@@ -81,98 +75,99 @@
 
 <!-- WELCOME / HOME PAGE -->
 <div *ngIf="showHomePage" class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow welcome-card">
-                <div class="card-body text-center">
-                    <div class="profile-image-container">
-                        @if (profileImage) {
-                            <img [src]="apiUrl + profileImage" class="employee-photo-large" alt="Profile"/>
-                        } @else {
-                            <div class="employee-photo-placeholder-large">
-                                {{ fullName.charAt(0).toUpperCase() }}
-                            </div>
-                        }
+    <!-- Modern Welcome Card -->
+    <div class="welcome-section">
+        <div class="welcome-card">
+            <div class="welcome-avatar">
+                @if (profileImage) {
+                    <img [src]="apiUrl + profileImage" alt="Profile"/>
+                } @else {
+                    {{ fullName.charAt(0).toUpperCase() }}
+                }
+            </div>
+            <div class="welcome-text">
+                <h2>Welcome back, {{ fullName }}! 👋</h2>
+                <p>{{ designation }} | {{ departmentName }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modern Stats Cards -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1>My Overview</h1>
+            <p>Your personal dashboard at a glance.</p>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        <div class="dashboard-card card-blue">
+            <div class="card-header-row">
+                <div class="stat-icon-wrapper">📊</div>
+                <span class="trend-badge">This Month</span>
+            </div>
+            <h2 class="stat-value">{{ attendanceSummary?.Present || 0 }}</h2>
+            <div class="stat-title">Present Days</div>
+            <div class="stat-subtitle">Days attended</div>
+        </div>
+
+        <div class="dashboard-card card-orange">
+            <div class="card-header-row">
+                <div class="stat-icon-wrapper">⏰</div>
+                <span class="trend-badge">This Month</span>
+            </div>
+            <h2 class="stat-value">{{ attendanceSummary?.Late || 0 }}</h2>
+            <div class="stat-title">Late Days</div>
+            <div class="stat-subtitle">Late arrivals</div>
+        </div>
+
+        <div class="dashboard-card card-purple">
+            <div class="card-header-row">
+                <div class="stat-icon-wrapper">📝</div>
+                <span class="trend-badge">Pending</span>
+            </div>
+            <h2 class="stat-value">{{ pendingTasksCount || 0 }}</h2>
+            <div class="stat-title">Pending Tasks</div>
+            <div class="stat-subtitle">Tasks to complete</div>
+        </div>
+
+        <div class="dashboard-card card-green">
+            <div class="card-header-row">
+                <div class="stat-icon-wrapper">✅</div>
+                <span class="trend-badge">Completed</span>
+            </div>
+            <h2 class="stat-value">{{ completedTasksCount || 0 }}</h2>
+            <div class="stat-title">Completed Tasks</div>
+            <div class="stat-subtitle">Tasks done</div>
+        </div>
+    </div>
+
+    <!-- Attendance Check In/Out -->
+    <div class="content-card">
+        <h2>⏰ Today's Attendance</h2>
+        <div class="row">
+            <div class="col-md-6 text-center">
+                <div class="attendance-status">
+                    <div class="mb-3">
+                        <div class="status-icon" [class.checked-in]="isCheckedIn">
+                            {{ isCheckedIn ? '✅' : '⭕' }}
+                        </div>
+                        <h5>Check In</h5>
+                        <p *ngIf="lastCheckInTime">Time: {{ lastCheckInTime | date:'hh:mm a' }}</p>
+                        <button class="btn btn-success btn-lg" (click)="checkIn()" [disabled]="isCheckedIn">{{ isCheckedIn ? 'Checked In' : 'Check In' }}</button>
                     </div>
-                    <h2 class="mt-3">Welcome, {{ fullName }}! 👋</h2>
-                    <p class="text-muted">{{ designation }} | {{ departmentName }}</p>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card stat-card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">📊 Present Days</h5>
-                    <h2 class="mb-0">{{ attendanceSummary?.Present || 0 }}</h2>
-                    <small>This month</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card stat-card bg-warning text-white">
-                <div class="card-body">
-                    <h5 class="card-title">⏰ Late Days</h5>
-                    <h2 class="mb-0">{{ attendanceSummary?.Late || 0 }}</h2>
-                    <small>This month</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card stat-card bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">📝 Pending Tasks</h5>
-                    <h2 class="mb-0">{{ pendingTasksCount }}</h2>
-                    <small>Tasks to complete</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card stat-card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">✅ Completed Tasks</h5>
-                    <h2 class="mb-0">{{ completedTasksCount }}</h2>
-                    <small>Tasks done</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">⏰ Today's Attendance</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 text-center">
-                            <div class="attendance-status">
-                                <div class="mb-3">
-                                    <div class="status-icon" [class.checked-in]="isCheckedIn">
-                                        {{ isCheckedIn ? '✅' : '⭕' }}
-                                    </div>
-                                    <h5>Check In</h5>
-                                    <p *ngIf="lastCheckInTime">Time: {{ lastCheckInTime | date:'hh:mm a' }}</p>
-                                    <button class="btn btn-success btn-lg" (click)="checkIn()" [disabled]="isCheckedIn">{{ isCheckedIn ? 'Checked In' : 'Check In' }}</button>
-                                </div>
-                            </div>
+            <div class="col-md-6 text-center">
+                <div class="attendance-status">
+                    <div class="mb-3">
+                        <div class="status-icon" [class.checked-out]="isCheckedOut">
+                            {{ isCheckedOut ? '✅' : '⭕' }}
                         </div>
-                        <div class="col-md-6 text-center">
-                            <div class="attendance-status">
-                                <div class="mb-3">
-                                    <div class="status-icon" [class.checked-out]="isCheckedOut">
-                                        {{ isCheckedOut ? '✅' : '⭕' }}
-                                    </div>
-                                    <h5>Check Out</h5>
-                                    <p *ngIf="lastCheckOutTime">Time: {{ lastCheckOutTime | date:'hh:mm a' }}</p>
-                                    <p *ngIf="todayWorkHours > 0">Total Hours: {{ todayWorkHours }} hrs</p>
-                                    <button class="btn btn-danger btn-lg" (click)="checkOut()" [disabled]="!isCheckedIn || isCheckedOut">{{ isCheckedOut ? 'Checked Out' : 'Check Out' }}</button>
-                                </div>
-                            </div>
-                        </div>
+                        <h5>Check Out</h5>
+                        <p *ngIf="lastCheckOutTime">Time: {{ lastCheckOutTime | date:'hh:mm a' }}</p>
+                        <p *ngIf="todayWorkHours > 0">Total Hours: {{ todayWorkHours }} hrs</p>
+                        <button class="btn btn-danger btn-lg" (click)="checkOut()" [disabled]="!isCheckedIn || isCheckedOut">{{ isCheckedOut ? 'Checked Out' : 'Check Out' }}</button>
                     </div>
                 </div>
             </div>
@@ -182,162 +177,146 @@
 
 <!-- TASK MANAGEMENT PAGE -->
 <div *ngIf="activeTab === 'tasks'" class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">📋 My Tasks</h4>
+    <div class="content-card">
+        <h2>📋 My Tasks</h2>
+        <div class="mb-3">
+            <select class="form-select w-auto d-inline-block" [(ngModel)]="taskFilter" (change)="loadTasks()">
+                <option value="">All Tasks</option>
+                <option value="Pending">Pending</option>
+                <option value="InProgress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
         </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <select class="form-select w-auto d-inline-block" [(ngModel)]="taskFilter" (change)="loadTasks()">
-                    <option value="">All Tasks</option>
-                    <option value="Pending">Pending</option>
-                    <option value="InProgress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                </select>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Due Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let task of tasks">
-                            <td>{{ task.title }}</td>
-                            <td>{{ task.description }}</td>
-                            <td><span class="badge" [class.bg-danger]="task.priority === 'Urgent'" [class.bg-warning]="task.priority === 'High'" [class.bg-info]="task.priority === 'Medium'">{{ task.priority }}</span></td>
-                            <td><span class="badge" [class.bg-warning]="task.status === 'Pending'" [class.bg-primary]="task.status === 'InProgress'" [class.bg-success]="task.status === 'Completed'">{{ task.status }}</span></td>
-                            <td [class.text-danger]="isOverdue(task.dueDate)">{{ task.dueDate | date:'dd MMM yyyy' }}<span *ngIf="isOverdue(task.dueDate)" class="badge bg-danger ms-2">Overdue</span></td>
-                            <td><select class="form-select form-select-sm" (change)="updateTaskStatus(task.id, $event)"><option value="Pending" [selected]="task.status === 'Pending'">Pending</option><option value="InProgress" [selected]="task.status === 'InProgress'">In Progress</option><option value="Completed" [selected]="task.status === 'Completed'">Completed</option></select></td>
-                        </tr>
-                        <tr *ngIf="tasks.length === 0"><td colspan="6" class="text-center">No tasks found</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let task of tasks">
+                        <td><strong>{{ task.title }}</strong></td>
+                        <td>{{ task.description }}</td>
+                        <td><span class="status-badge" [class.status-urgent]="task.priority === 'Urgent'" [class.status-high]="task.priority === 'High'" [class.status-pending]="task.priority === 'Medium'">{{ task.priority }}</span></td>
+                        <td><span class="status-badge" [class.status-pending]="task.status === 'Pending'" [class.status-active]="task.status === 'InProgress'" [class.status-completed]="task.status === 'Completed'">{{ task.status }}</span></td>
+                        <td [class.text-danger]="isOverdue(task.dueDate)">{{ task.dueDate | date:'dd MMM yyyy' }}<span *ngIf="isOverdue(task.dueDate)" class="badge bg-danger ms-2">Overdue</span></td>
+                        <td><select class="form-select form-select-sm" (change)="updateTaskStatus(task.id, $event)"><option value="Pending" [selected]="task.status === 'Pending'">Pending</option><option value="InProgress" [selected]="task.status === 'InProgress'">In Progress</option><option value="Completed" [selected]="task.status === 'Completed'">Completed</option></select></td>
+                    </tr>
+                    <tr *ngIf="tasks.length === 0"><td colspan="6" class="text-center">No tasks found</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <!-- LEAVE APPLICATIONS PAGE -->
 <div *ngIf="activeTab === 'leaves'" class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">📅 Leave Applications</h4>
-        </div>
-        <div class="card-body">
-            <button class="btn btn-primary mb-3" (click)="openApplyLeave()">+ Apply for Leave</button>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Leave Type</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Total Days</th>
-                            <th>Reason</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let leave of leaves">
-                            <td>{{ leave.leaveType }}</td>
-                            <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
-                            <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
-                            <td>{{ leave.totalDays }}</td>
-                            <td>{{ leave.reason }}</td>
-                            <td><span class="badge" [class.bg-warning]="leave.status === 'Pending'" [class.bg-success]="leave.status === 'Approved'" [class.bg-danger]="leave.status === 'Rejected'">{{ leave.status }}</span></td>
-                            <td><button class="btn btn-danger btn-sm" (click)="cancelLeave(leave.id)" *ngIf="leave.status === 'Pending'">Cancel</button></td>
-                        </tr>
-                        <tr *ngIf="leaves.length === 0"><td colspan="7" class="text-center">No leave applications found</td></tr>
-                    </tbody>
-                </table>
-            </div>
+    <div class="content-card">
+        <h2>📅 Leave Applications</h2>
+        <button class="btn btn-primary mb-3" (click)="openApplyLeave()">+ Apply for Leave</button>
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Leave Type</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Total Days</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let leave of leaves">
+                        <td>{{ leave.leaveType }}</td>
+                        <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
+                        <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
+                        <td>{{ leave.totalDays }}</td>
+                        <td>{{ leave.reason }}</td>
+                        <td><span class="status-badge" [class.status-pending]="leave.status === 'Pending'" [class.status-completed]="leave.status === 'Approved'" [class.status-inactive]="leave.status === 'Rejected'">{{ leave.status }}</span></td>
+                        <td><button class="btn btn-danger btn-sm" (click)="cancelLeave(leave.id)" *ngIf="leave.status === 'Pending'">Cancel</button></td>
+                    </tr>
+                    <tr *ngIf="leaves.length === 0"><td colspan="7" class="text-center">No leave applications found</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <!-- ATTENDANCE HISTORY PAGE -->
 <div *ngIf="activeTab === 'attendance'" class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">📊 Attendance History</h4>
+    <div class="content-card">
+        <h2>📊 Attendance History</h2>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <select class="form-select" [(ngModel)]="selectedMonth" (change)="loadAttendanceHistory()">
+                    <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                    <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                    <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                    <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" [(ngModel)]="selectedYear" (change)="loadAttendanceHistory()">
+                    <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
+                </select>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-3">
-                    <select class="form-select" [(ngModel)]="selectedMonth" (change)="loadAttendanceHistory()">
-                        <option value="1">January</option><option value="2">February</option><option value="3">March</option>
-                        <option value="4">April</option><option value="5">May</option><option value="6">June</option>
-                        <option value="7">July</option><option value="8">August</option><option value="9">September</option>
-                        <option value="10">October</option><option value="11">November</option><option value="12">December</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select" [(ngModel)]="selectedYear" (change)="loadAttendanceHistory()">
-                        <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
-                    </select>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Status</th>
-                            <th>Total Hours</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let att of attendanceHistory">
-                            <td>{{ att.date | date:'dd MMM yyyy' }}</td>
-                            <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
-                            <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
-                            <td><span class="badge" [class.bg-success]="att.status === 'Present'" [class.bg-warning]="att.status === 'Late'">{{ att.status }}</span></td>
-                            <td>{{ att.totalWorkHours }} hrs</td>
-                            </tr>
-                        <tr *ngIf="attendanceHistory.length === 0"><td colspan="5" class="text-center">No attendance records found</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Status</th>
+                        <th>Total Hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let att of attendanceHistory">
+                        <td>{{ att.date | date:'dd MMM yyyy' }}</td>
+                        <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
+                        <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
+                        <td><span class="status-badge" [class.status-completed]="att.status === 'Present'" [class.status-pending]="att.status === 'Late'">{{ att.status }}</span></td>
+                        <td>{{ att.totalWorkHours }} hrs</td>
+                    </tr>
+                    <tr *ngIf="attendanceHistory.length === 0"><td colspan="5" class="text-center">No attendance records found</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <!-- MY PROFILE PAGE -->
 <div *ngIf="activeTab === 'profile'" class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">👤 My Profile</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Personal Information</h5>
-                    <table class="table table-bordered">
-                        <tr><th>Full Name:</th><td>{{ fullName }}</td></tr>
-                        <tr><th>Email:</th><td>{{ email }}</td></tr>
-                        <tr><th>Phone:</th><td>{{ phone || 'Not provided' }}</td></tr>
-                        <tr><th>Address:</th><td>{{ address || 'Not provided' }}</td></tr>
-                    </table>
-                </div>
-                <div class="col-md-6">
-                    <h5>Work Information</h5>
-                    <table class="table table-bordered">
-                        <tr><th>Department:</th><td>{{ departmentName }}</tr>
-                        <tr><th>Designation:</th><td>{{ designation }}</td>
-                        <tr><th>Salary:</th><td>{{ salary | currency }}</td>
-                        <tr><th>Joining Date:</th><td>{{ joiningDate | date:'dd MMM yyyy' }}</td>
-                    </table>
-                </div>
+    <div class="content-card">
+        <h2>👤 My Profile</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Personal Information</h5>
+                <table class="modern-table">
+                    <tr><th>Full Name:</th><td>{{ fullName }}</td></tr>
+                    <tr><th>Email:</th><td>{{ email }}</td></tr>
+                    <tr><th>Phone:</th><td>{{ phone || 'Not provided' }}</td></tr>
+                    <tr><th>Address:</th><td>{{ address || 'Not provided' }}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5>Work Information</h5>
+                <table class="modern-table">
+                    <tr><th>Department:</th><td>{{ departmentName }}</td></tr>
+                    <tr><th>Designation:</th><td>{{ designation }}</td></tr>
+                    <tr><th>Salary:</th><td>{{ salary | currency }}</td></tr>
+                    <tr><th>Joining Date:</th><td>{{ joiningDate | date:'dd MMM yyyy' }}</td></tr>
+                </table>
             </div>
         </div>
     </div>
@@ -394,268 +373,243 @@
 }
 
 <style>
-    /* Sidebar styles */
-    .sidebar { 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        height: 100%; 
-        width: 260px; 
-        background: white; 
-        box-shadow: 4px 0 20px rgba(0,0,0,0.15); 
-        z-index: 1200; 
-        transform: translateX(-100%); 
-        transition: transform 0.3s ease; 
-        display: flex; 
-        flex-direction: column; 
+    /* ===== MODERN DASHBOARD CSS ===== */
+    .dashboard-header {
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
     }
-    .sidebar.sidebar-open { transform: translateX(0); }
-    .sidebar-header { 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; 
-        padding: 18px 20px; 
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
-        color: white; 
+    .header-content h1 {
+        margin: 0 0 8px 0;
+        color: #1e293b;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
     }
-    .sidebar-close-btn { 
-        background: rgba(255,255,255,0.15); 
-        border: none; 
-        color: white; 
-        width: 28px; 
-        height: 28px; 
-        border-radius: 6px; 
-        cursor: pointer; 
-    }
-    .sidebar-menu { padding: 12px 0; flex: 1; }
-    .sidebar-item { 
-        display: flex; 
-        align-items: center; 
-        gap: 14px; 
-        padding: 13px 22px; 
-        cursor: pointer; 
-        font-size: 14px; 
-        font-weight: 500; 
-        color: #444; 
-        transition: all 0.2s ease; 
-        border-left: 3px solid transparent; 
-    }
-    .sidebar-item:hover { 
-        background: #f0f0f8; 
-        color: #1a1a2e; 
-        border-left-color: #1a1a2e; 
-    }
-    .sidebar-item-active { 
-        background: #eeeef8; 
-        color: #1a1a2e; 
-        font-weight: 700; 
-        border-left-color: #1a1a2e !important; 
-    }
-    .sidebar-icon { font-size: 18px; width: 24px; text-align: center; }
-    .sidebar-label { flex: 1; }
-    .sidebar-overlay, .click-outside-overlay { 
-        position: fixed; 
-        inset: 0; 
-        background: rgba(0,0,0,0.35); 
-        z-index: 1100; 
+    .header-content p {
+        margin: 0;
+        color: #64748b;
+        font-size: 16px;
     }
 
-    /* Profile Menu Styles */
-    .profile-wrapper { 
-        cursor: pointer; 
-        position: relative; 
-        z-index: 1300; 
-    }
-    .profile-img { 
-        width: 42px; 
-        height: 42px; 
-        border-radius: 50%; 
-        object-fit: cover; 
-        border: 2px solid white; 
-    }
-    .profile-placeholder { 
-        width: 42px; 
-        height: 42px; 
-        border-radius: 50%; 
-        background: white; 
-        color: #1a1a2e; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        font-size: 18px; 
-        font-weight: bold; 
-        border: 2px solid white; 
-        cursor: pointer; 
-    }
-    
-    .profile-menu { 
-        position: fixed; 
-        top: 70px; 
-        right: 20px; 
-        background: white; 
-        border-radius: 12px; 
-        box-shadow: 0 20px 40px rgba(0,0,0,0.25); 
-        width: 280px; 
-        z-index: 1400; 
-        border: 1px solid #e0e0e0;
-        animation: slideDown 0.2s ease-out;
-    }
-    
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .profile-menu-header {
-        padding: 20px 20px 15px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    .menu-profile-img {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #1a1a2e;
-    }
-    .menu-profile-placeholder {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea, #764ba2);
+    /* Welcome Card */
+    .welcome-section { margin-bottom: 32px; }
+    .welcome-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 40px;
         color: white;
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        font-weight: bold;
+        gap: 32px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
     }
-    .menu-name {
-        margin: 0;
-        font-weight: 600;
-        font-size: 16px;
-        color: #1a1a2e;
+    .welcome-avatar {
+        width: 100px; height: 100px; border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 40px; font-weight: 700;
+        border: 3px solid rgba(255,255,255,0.3); flex-shrink: 0;
+        overflow: hidden;
     }
-    .menu-email {
-        margin: 0;
-        font-size: 14px;
-        color: #666;
+    .welcome-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .welcome-text h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .welcome-text p { font-size: 16px; opacity: 0.9; margin: 0; }
+
+    /* Stats Grid */
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
     }
-    .menu-divider {
-        margin: 0;
-        border: none;
-        border-top: 1px solid #eee;
-    }
-    .menu-item {
-        padding: 15px 20px;
+    .dashboard-card {
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: #ffffff;
+        position: relative;
+        overflow: hidden;
         cursor: pointer;
-        transition: background 0.2s ease;
+    }
+    .dashboard-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, var(--card-color) 0%, var(--card-color-light) 100%);
+        opacity: 0.6;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .card-header-row {
         display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    .stat-icon-wrapper {
+        width: 56px; height: 56px; border-radius: 16px;
+        display: flex; justify-content: center; align-items: center;
+        background-color: var(--icon-bg); color: var(--card-color);
+        font-size: 28px;
+    }
+    .trend-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 10px; border-radius: 20px;
+        font-size: 12px; font-weight: 600;
+        background: var(--trend-bg); color: var(--trend-color);
+    }
+    .stat-value { margin: 0; font-size: 36px; font-weight: 700; color: #1e293b; line-height: 1.2; }
+    .stat-title { font-size: 15px; font-weight: 600; color: #64748b; margin-top: 8px; }
+    .stat-subtitle { font-size: 13px; font-weight: 500; margin-top: 4px; color: var(--card-color); }
+
+    /* Card Colors */
+    .card-blue { --card-color: #3b82f6; --card-color-light: #93c5fd; --icon-bg: rgba(59,130,246,0.12); --trend-bg: rgba(59,130,246,0.1); --trend-color: #3b82f6; }
+    .card-green { --card-color: #10b981; --card-color-light: #6ee7b7; --icon-bg: rgba(16,185,129,0.12); --trend-bg: rgba(16,185,129,0.1); --trend-color: #10b981; }
+    .card-purple { --card-color: #8b5cf6; --card-color-light: #c4b5fd; --icon-bg: rgba(139,92,246,0.12); --trend-bg: rgba(139,92,246,0.1); --trend-color: #8b5cf6; }
+    .card-orange { --card-color: #f59e0b; --card-color-light: #fcd34d; --icon-bg: rgba(245,158,11,0.12); --trend-bg: rgba(245,158,11,0.1); --trend-color: #f59e0b; }
+
+    /* Content Card */
+    .content-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        margin-bottom: 24px;
+    }
+    .content-card h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 20px;
+    }
+
+    /* Modern Table */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .modern-table th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .modern-table td {
+        padding: 14px 16px;
+        color: #334155;
+        font-size: 14px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .modern-table tr:hover td {
+        background: #f8fafc;
+    }
+    .status-badge {
+        display: inline-flex;
         align-items: center;
-        gap: 12px;
-        font-size: 15px;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
     }
-    .menu-item:hover {
-        background: #f8f9ff;
-        color: #1a1a2e;
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-inactive { background: #fee2e2; color: #991b1b; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-completed { background: #dcfce7; color: #166534; }
+    .status-urgent { background: #fee2e2; color: #991b1b; }
+    .status-high { background: #ffedd5; color: #9a3412; }
+
+    /* Attendance */
+    .attendance-status {
+        padding: 24px;
+        background: #f8fafc;
+        border-radius: 16px;
+        margin: 8px;
     }
-    .menu-item.text-danger {
-        color: #dc3545 !important;
+    .status-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 12px;
+        transition: all 0.3s;
     }
-    .menu-item.text-danger:hover {
-        background: #fff5f5 !important;
+    .status-icon.checked-in {
+        background: #dcfce7;
+    }
+    .status-icon.checked-out {
+        background: #fee2e2;
     }
 
-    /* Navbar styles */
-    .navbar { 
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important; 
-        padding: 10px 20px; 
-        z-index: 1000;
+    /* Animations */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    .menu-toggle-btn { 
-        background: transparent; 
-        border: none; 
-        cursor: pointer; 
-        display: flex; 
-        flex-direction: column; 
-        gap: 5px; 
-        padding: 6px 8px; 
-        border-radius: 6px; 
-        margin-right: 10px; 
+    .dashboard-card {
+        animation: fadeInUp 0.5s ease forwards;
     }
-    .menu-bar { 
-        display: block; 
-        width: 22px; 
-        height: 2px; 
-        background: white; 
-        border-radius: 2px; 
-    }
+    .dashboard-card:nth-child(1) { animation-delay: 0.1s; }
+    .dashboard-card:nth-child(2) { animation-delay: 0.2s; }
+    .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
+    .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
 
-    /* Other styles */
-    .welcome-card { 
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-        color: white; 
-    }
-    .employee-photo-large { 
-        width: 120px; 
-        height: 120px; 
-        border-radius: 50%; 
-        object-fit: cover; 
-        border: 3px solid white; 
-    }
-    .employee-photo-placeholder-large { 
-        width: 120px; 
-        height: 120px; 
-        border-radius: 50%; 
-        background: rgba(255,255,255,0.3); 
-        color: white; 
-        display: inline-flex; 
-        align-items: center; 
-        justify-content: center; 
-        font-size: 48px; 
-        font-weight: bold; 
-    }
-    .stat-card { 
-        border-radius: 10px; 
-        transition: transform 0.3s; 
-    }
-    .stat-card:hover { 
-        transform: translateY(-5px); 
-    }
-    .badge.bg-danger { 
-        font-size: 10px; 
-        padding: 2px 6px; 
-        margin-left: 5px; 
-    }
-    .text-danger { 
-        color: #dc3545 !important; 
-        font-weight: bold; 
-    }
-    .modal-overlay { 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
-        background: rgba(0,0,0,0.5); 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        z-index: 2000; 
-    }
-    .modal-box { 
-        background: white; 
-        border-radius: 15px; 
-        padding: 25px; 
-        width: 450px; 
-        max-width: 90%; 
-    }
-    .preview-img { 
-        width: 80px; 
-        height: 80px; 
-        border-radius: 50%; 
-        object-fit: cover; 
-        border: 3px solid #1a1a2e; 
+    /* ===== EXISTING SIDEBAR & NAVBAR STYLES (PRESERVED) ===== */
+    .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 260px; background: white; box-shadow: 4px 0 20px rgba(0,0,0,0.15); z-index: 1200; transform: translateX(-100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+    .sidebar.sidebar-open { transform: translateX(0); }
+    .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; }
+    .sidebar-close-btn { background: rgba(255,255,255,0.15); border: none; color: white; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; }
+    .sidebar-menu { padding: 12px 0; flex: 1; }
+    .sidebar-item { display: flex; align-items: center; gap: 14px; padding: 13px 22px; cursor: pointer; font-size: 14px; font-weight: 500; color: #444; transition: all 0.2s ease; border-left: 3px solid transparent; }
+    .sidebar-item:hover { background: #f0f0f8; color: #1a1a2e; border-left-color: #1a1a2e; }
+    .sidebar-item-active { background: #eeeef8; color: #1a1a2e; font-weight: 700; border-left-color: #1a1a2e !important; }
+    .sidebar-icon { font-size: 18px; width: 24px; text-align: center; }
+    .sidebar-label { flex: 1; }
+    .sidebar-overlay, .click-outside-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1100; }
+    .profile-wrapper { cursor: pointer; position: relative; z-index: 1300; }
+    .profile-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
+    .profile-placeholder { width: 42px; height: 42px; border-radius: 50%; background: white; color: #1a1a2e; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; border: 2px solid white; cursor: pointer; }
+    .profile-menu { position: fixed; top: 70px; right: 20px; background: white; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); width: 280px; z-index: 1400; border: 1px solid #e0e0e0; animation: slideDown 0.2s ease-out; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .profile-menu-header { padding: 20px 20px 15px; display: flex; align-items: center; gap: 15px; }
+    .menu-profile-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 3px solid #1a1a2e; }
+    .menu-profile-placeholder { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+    .menu-name { margin: 0; font-weight: 600; font-size: 16px; color: #1a1a2e; }
+    .menu-email { margin: 0; font-size: 14px; color: #666; }
+    .menu-divider { margin: 0; border: none; border-top: 1px solid #eee; }
+    .menu-item { padding: 15px 20px; cursor: pointer; transition: background 0.2s ease; display: flex; align-items: center; gap: 12px; font-size: 15px; }
+    .menu-item:hover { background: #f8f9ff; color: #1a1a2e; }
+    .menu-item.text-danger { color: #dc3545 !important; }
+    .menu-item.text-danger:hover { background: #fff5f5 !important; }
+    .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important; padding: 10px 20px; z-index: 1000; }
+    .menu-toggle-btn { background: transparent; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 6px 8px; border-radius: 6px; margin-right: 10px; }
+    .menu-bar { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+    .modal-box { background: white; border-radius: 15px; padding: 25px; width: 450px; max-width: 90%; }
+    .preview-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #1a1a2e; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .cards-grid { grid-template-columns: 1fr; }
+        .dashboard-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .welcome-card { flex-direction: column; text-align: center; padding: 24px; }
+        .welcome-avatar { width: 80px; height: 80px; font-size: 32px; }
     }
 </style>

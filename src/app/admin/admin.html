@@ -58,11 +58,15 @@
             <span class="section-arrow">{{ expandedSections['management'] ? '▼' : '▶' }}</span>
         </div>
         <div class="sidebar-submenu" *ngIf="expandedSections['management']">
-            <div class="sidebar-subitem" (click)="onMenuClick('employees'); toggleSidebar()">
+            <div class="sidebar-subitem" 
+                 [class.active]="activeMenu === 'employees'"
+                 (click)="onMenuClick('employees'); activeMenu = 'employees'; toggleSidebar()">
                 <span class="sidebar-icon">📋</span>
                 <span class="sidebar-label">Employee List</span>
             </div>
-            <div class="sidebar-subitem" (click)="onMenuClick('createemployee'); toggleSidebar()">
+            <div class="sidebar-subitem"
+                 [class.active]="activeMenu === 'createemployee'"
+                 (click)="onMenuClick('createemployee'); activeMenu = 'createemployee'; toggleSidebar()">
                 <span class="sidebar-icon">➕</span>
                 <span class="sidebar-label">Create Employee</span>
             </div>
@@ -74,11 +78,14 @@
             <span class="section-arrow">{{ expandedSections['tasks'] ? '▼' : '▶' }}</span>
         </div>
         <div class="sidebar-submenu" *ngIf="expandedSections['tasks']">
-            <div class="sidebar-subitem" (click)="onMenuClick('tasks'); toggleSidebar()">
+            <div class="sidebar-subitem"
+                 [class.active]="activeMenu === 'tasks'"
+                 (click)="onMenuClick('tasks'); activeMenu = 'tasks'; toggleSidebar()">
                 <span class="sidebar-icon">📋</span>
                 <span class="sidebar-label">Task Management</span>
             </div>
-            <div class="sidebar-subitem" (click)="openAssignTaskModal(); toggleSidebar()">
+            <div class="sidebar-subitem"
+                 (click)="openAssignTaskModal(); toggleSidebar()">
                 <span class="sidebar-icon">➕</span>
                 <span class="sidebar-label">Assign New Task</span>
             </div>
@@ -90,12 +97,16 @@
             <span class="section-arrow">{{ expandedSections['leaves'] ? '▼' : '▶' }}</span>
         </div>
         <div class="sidebar-submenu" *ngIf="expandedSections['leaves']">
-            <div class="sidebar-subitem" (click)="onMenuClick('leaverequests'); toggleSidebar()">
+            <div class="sidebar-subitem"
+                 [class.active]="activeMenu === 'leaverequests'"
+                 (click)="onMenuClick('leaverequests'); activeMenu = 'leaverequests'; toggleSidebar()">
                 <span class="sidebar-icon">📝</span>
                 <span class="sidebar-label">Leave Requests</span>
                 <span class="badge bg-danger ms-2" *ngIf="pendingLeavesCount > 0">{{ pendingLeavesCount }}</span>
             </div>
-            <div class="sidebar-subitem" (click)="onMenuClick('leavehistory'); toggleSidebar()">
+            <div class="sidebar-subitem"
+                 [class.active]="activeMenu === 'leavehistory'"
+                 (click)="onMenuClick('leavehistory'); activeMenu = 'leavehistory'; toggleSidebar()">
                 <span class="sidebar-icon">📜</span>
                 <span class="sidebar-label">Leave History</span>
             </div>
@@ -107,7 +118,9 @@
             <span class="section-arrow">{{ expandedSections['attendance'] ? '▼' : '▶' }}</span>
         </div>
         <div class="sidebar-submenu" *ngIf="expandedSections['attendance']">
-            <div class="sidebar-subitem" (click)="onMenuClick('attendance'); toggleSidebar()">
+            <div class="sidebar-subitem"
+                 [class.active]="activeMenu === 'attendance'"
+                 (click)="onMenuClick('attendance'); activeMenu = 'attendance'; toggleSidebar()">
                 <span class="sidebar-icon">📊</span>
                 <span class="sidebar-label">Attendance Overview</span>
             </div>
@@ -115,89 +128,93 @@
 
     </div>
 </div>
-
-<div class="container-fluid mt-4 px-4">
+<div class="container mt-4">
     <!-- WELCOME / HOME PAGE (Shows first) -->
     <div *ngIf="showHomePage">
+        <!-- Modern Welcome Card -->
+        <div class="welcome-section">
+            <div class="welcome-card">
+                <div class="welcome-avatar">
+                    @if (profileImage) {
+                        <img [src]="apiUrl + profileImage" alt="Profile"/>
+                    } @else {
+                        {{ fullName.charAt(0).toUpperCase() }}
+                    }
+                </div>
+                <div class="welcome-text">
+                    <h2>Welcome back, {{ fullName }}! 👋</h2>
+                    <p>Admin Panel • {{ employees.length }} employees • {{ pendingLeavesCount }} pending leaves</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Stats Cards -->
+        <div class="dashboard-header">
+            <div class="header-content">
+                <h1>Dashboard Overview</h1>
+                <p>Welcome back! Here's what's happening today.</p>
+            </div>
+        </div>
+
+        <div class="cards-grid">
+            <div class="dashboard-card card-blue">
+                <div class="card-header-row">
+                    <div class="stat-icon-wrapper">👥</div>
+                    <span class="trend-badge">📈 +12.5%</span>
+                </div>
+                <h2 class="stat-value">{{ totalUsers || 0 }}</h2>
+                <div class="stat-title">Total Users</div>
+                <div class="stat-subtitle">Registered employees</div>
+            </div>
+
+            <div class="dashboard-card card-green">
+                <div class="card-header-row">
+                    <div class="stat-icon-wrapper">✅</div>
+                    <span class="trend-badge">📈 +8.2%</span>
+                </div>
+                <h2 class="stat-value">{{ getActiveUsersCount() || 0 }}</h2>
+                <div class="stat-title">Active Users</div>
+                <div class="stat-subtitle">Active accounts</div>
+            </div>
+
+            <div class="dashboard-card card-purple">
+                <div class="card-header-row">
+                    <div class="stat-icon-wrapper">📋</div>
+                    <span class="trend-badge">📈 +5.7%</span>
+                </div>
+                <h2 class="stat-value">{{ adminTasks.length || 0 }}</h2>
+                <div class="stat-title">Total Tasks</div>
+                <div class="stat-subtitle">Assigned tasks</div>
+            </div>
+
+            <div class="dashboard-card card-orange">
+                <div class="card-header-row">
+                    <div class="stat-icon-wrapper">📅</div>
+                    <span class="trend-badge">📈 +2.3%</span>
+                </div>
+                <h2 class="stat-value">{{ pendingLeavesCount || 0 }}</h2>
+                <div class="stat-title">Pending Leaves</div>
+                <div class="stat-subtitle">Leave requests</div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Section -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card shadow welcome-card">
-                    <div class="card-body text-center">
-                        <div class="profile-image-container">
-                            @if (profileImage) {
-                                <img [src]="apiUrl + profileImage" class="employee-photo-large" alt="Profile"/>
-                            } @else {
-                                <div class="employee-photo-placeholder-large">
-                                    {{ fullName.charAt(0).toUpperCase() }}
-                                </div>
-                            }
+                <div class="content-card">
+                    <h2>📊 Quick Stats</h2>
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h3>{{ employees.length }}</h3>
+                            <p class="text-muted">Total Employees</p>
                         </div>
-                        <h2 class="mt-3">Welcome, {{ fullName }}! 👋</h2>
-                        <p class="text-muted">Admin Panel</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="card stat-card bg-primary text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">👥 Total Users</h5>
-                        <h2 class="mb-0">{{ totalUsers }}</h2>
-                        <small>Registered users</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card stat-card bg-success text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">✅ Active Users</h5>
-                        <h2 class="mb-0">{{ getActiveUsersCount() }}</h2>
-                        <small>Active accounts</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card stat-card bg-warning text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">📋 Total Tasks</h5>
-                        <h2 class="mb-0">{{ adminTasks.length }}</h2>
-                        <small>Assigned tasks</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card stat-card bg-info text-white">
-                    <div class-card-body>
-                        <h5 class="card-title">📅 Pending Leaves</h5>
-                        <h2 class="mb-0">{{ pendingLeavesCount }}</h2>
-                        <small>Leave requests</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">📊 Quick Stats</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 text-center">
-                                <h3>{{ employees.length }}</h3>
-                                <p class="text-muted">Total Employees</p>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <h3>{{ departments.length }}</h3>
-                                <p class="text-muted">Departments</p>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <h3>{{ getActiveEmployeesCount() }}</h3>
-                                <p class="text-muted">Active Employees</p>
-                            </div>
+                        <div class="col-md-4 text-center">
+                            <h3>{{ departments.length }}</h3>
+                            <p class="text-muted">Departments</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h3>{{ getActiveEmployeesCount() }}</h3>
+                            <p class="text-muted">Active Employees</p>
                         </div>
                     </div>
                 </div>
@@ -207,42 +224,43 @@
 
     <!-- EMPLOYEE LIST PAGE -->
     <div *ngIf="activeContent === 'employees'">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="mb-4">👨‍💼 Employee List</h2>
-                @if (empLoading) {
-                    <div class="text-center"><div class="spinner-border text-primary"></div></div>
-                } @else {
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="table-dark">
-                                <tr><th>#</th><th>Name</th><th>Email</th><th>Department</th><th>Designation</th><th>Status</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody>
-                                @for (emp of employeeList; track emp.id) {
-                                    <tr [class.inactive-row]="!emp.isActive">
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ emp.name }}</td>
-                                        <td>{{ emp.email }}</td>
-                                        <td>{{ emp.departmentName }}</td>
-                                        <td>{{ emp.designation }}</td>
-                                        <td><span class="badge" [class.bg-success]="emp.isActive" [class.bg-danger]="!emp.isActive">{{ emp.isActive ? 'Active' : 'Inactive' }}</span></td>
-                                        <td><button class="btn btn-danger btn-sm" (click)="deleteEmployee(emp.id)">Delete</button></td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-            </div>
+        <div class="content-card">
+            <h2>👨‍💼 Employee List</h2>
+            @if (empLoading) {
+                <div class="text-center"><div class="spinner-border text-primary"></div></div>
+            } @else {
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr><th>#</th><th>Name</th><th>Email</th><th>Department</th><th>Designation</th><th>Status</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            @for (emp of employeeList; track emp.id) {
+                                <tr [class.inactive-row]="!emp.isActive">
+                                    <td>{{ $index + 1 }}</td>
+                                    <td><strong>{{ emp.name }}</strong></td>
+                                    <td>{{ emp.email }}</td>
+                                    <td>{{ emp.departmentName }}</td>
+                                    <td>{{ emp.designation }}</td>
+                                    <td>
+                                        <span class="status-badge" [class.status-active]="emp.isActive" [class.status-inactive]="!emp.isActive">
+                                            {{ emp.isActive ? 'Active' : 'Inactive' }}
+                                        </span>
+                                    </td>
+                                    <td><button class="btn-modern btn-danger-modern" (click)="deleteEmployee(emp.id)">Delete</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
         </div>
     </div>
 
     <!-- CREATE EMPLOYEE PAGE -->
-<div *ngIf="activeContent === 'createemployee'">
-    <div class="card shadow">
-        <div class="card-body">
-            <h2 class="mb-4">➕ Create Employee</h2>
+    <div *ngIf="activeContent === 'createemployee'">
+        <div class="content-card">
+            <h2>➕ Create Employee</h2>
             <div class="alert alert-danger" *ngIf="empError">{{ empError }}</div>
             <div class="alert alert-success" *ngIf="empSuccess">{{ empSuccess }}</div>
             <div class="row">
@@ -313,16 +331,14 @@
             <button class="btn btn-secondary ms-2" (click)="onMenuClick('employees')">Cancel</button>
         </div>
     </div>
-</div>
+
     <!-- TASK MANAGEMENT PAGE -->
-<div *ngIf="activeContent === 'tasks'">
-    <div class="card shadow">
-        <div class="card-body">
-            <h2 class="mb-4">📋 Task Management</h2>
-            <!-- Removed the "Assign New Task" button -->
+    <div *ngIf="activeContent === 'tasks'">
+        <div class="content-card">
+            <h2>📋 Task Management</h2>
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="table-dark">
+                <table class="modern-table">
+                    <thead>
                         <tr>
                             <th>Employee</th>
                             <th>Title</th>
@@ -334,12 +350,12 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let task of adminTasks">
-                            <td>{{ task.employee?.name || task.employeeName }}</td>
+                            <td><strong>{{ task.employee?.name || task.employeeName }}</strong></td>
                             <td>{{ task.title }}</td>
-                            <td><span class="badge" [class.bg-danger]="task.priority === 'Urgent'" [class.bg-warning]="task.priority === 'High'">{{ task.priority }}</span></td>
-                            <td><span class="badge" [class.bg-warning]="task.status === 'Pending'" [class.bg-success]="task.status === 'Completed'">{{ task.status }}</span></td>
+                            <td><span class="status-badge" [class.status-urgent]="task.priority === 'Urgent'" [class.status-high]="task.priority === 'High'">{{ task.priority }}</span></td>
+                            <td><span class="status-badge" [class.status-pending]="task.status === 'Pending'" [class.status-completed]="task.status === 'Completed'">{{ task.status }}</span></td>
                             <td>{{ task.dueDate | date:'dd MMM yyyy' }}</td>
-                            <td><button class="btn btn-danger btn-sm" (click)="deleteTask(task.id)">Delete</button></td>
+                            <td><button class="btn-modern btn-danger-modern" (click)="deleteTask(task.id)">Delete</button></td>
                         </tr>
                         <tr *ngIf="adminTasks.length === 0">
                             <td colspan="6" class="text-center">No tasks found</td>
@@ -349,46 +365,47 @@
             </div>
         </div>
     </div>
-</div>
+
     <!-- LEAVE REQUESTS PAGE -->
     <div *ngIf="activeContent === 'leaverequests'">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="mb-4">📅 Leave Requests</h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead class="table-dark">
-                            <tr><th>Employee</th><th>Type</th><th>Start</th><th>End</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let leave of leaveRequests">
-                                <td>{{ leave.employee?.name }}</td>
-                                <td>{{ leave.leaveType }}</td>
-                                <td>{{ leave.startDate | date:'dd MMM' }}</td>
-                                <td>{{ leave.endDate | date:'dd MMM' }}</td>
-                                <td>{{ leave.totalDays }}</td>
-                                <td>{{ leave.reason }}</td>
-                                <td><span class="badge" [class.bg-warning]="leave.status === 'Pending'" [class.bg-success]="leave.status === 'Approved'">{{ leave.status }}</span></td>
-                                <td>
-                                    <div *ngIf="leave.status === 'Pending'">
-                                        <button class="btn btn-success btn-sm me-1" (click)="approveLeave(leave.id)">Approve</button>
-                                        <button class="btn btn-danger btn-sm" (click)="rejectLeave(leave.id)">Reject</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr *ngIf="leaveRequests.length === 0"><td colspan="8" class="text-center">No pending leaves</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+        <div class="content-card">
+            <h2>📅 Leave Requests</h2>
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr><th>Employee</th><th>Type</th><th>Start</th><th>End</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let leave of leaveRequests">
+                            <td><strong>{{ leave.employee?.name }}</strong></td>
+                            <td>{{ leave.leaveType }}</td>
+                            <td>{{ leave.startDate | date:'dd MMM' }}</td>
+                            <td>{{ leave.endDate | date:'dd MMM' }}</td>
+                            <td>{{ leave.totalDays }}</td>
+                            <td>{{ leave.reason }}</td>
+                            <td>
+                                <span class="status-badge" [class.status-pending]="leave.status === 'Pending'" [class.status-completed]="leave.status === 'Approved'">
+                                    {{ leave.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div *ngIf="leave.status === 'Pending'">
+                                    <button class="btn btn-success btn-sm me-1" (click)="approveLeave(leave.id)">Approve</button>
+                                    <button class="btn btn-danger btn-sm" (click)="rejectLeave(leave.id)">Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr *ngIf="leaveRequests.length === 0"><td colspan="8" class="text-center">No pending leaves</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <!-- LEAVE HISTORY PAGE -->
-<div *ngIf="activeContent === 'leavehistory'">
-    <div class="card shadow">
-        <div class="card-body">
-            <h2 class="mb-4">📜 Leave History</h2>
+    <div *ngIf="activeContent === 'leavehistory'">
+        <div class="content-card">
+            <h2>📜 Leave History</h2>
             <div class="row mb-3">
                 <div class="col-md-3">
                     <label>Status</label>
@@ -400,8 +417,8 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="table-dark">
+                <table class="modern-table">
+                    <thead>
                         <tr>
                             <th>Employee</th>
                             <th>Type</th>
@@ -413,11 +430,15 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let leave of leaveHistory">
-                            <td>{{ leave.employee?.name }}</td>
+                            <td><strong>{{ leave.employee?.name }}</strong></td>
                             <td>{{ leave.leaveType }}</td>
                             <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
                             <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
-                            <td><span class="badge" [class.bg-success]="leave.status === 'Approved'" [class.bg-danger]="leave.status === 'Rejected'">{{ leave.status }}</span></td>
+                            <td>
+                                <span class="status-badge" [class.status-completed]="leave.status === 'Approved'" [class.status-inactive]="leave.status === 'Rejected'">
+                                    {{ leave.status }}
+                                </span>
+                            </td>
                             <td>{{ leave.adminRemarks || '-' }}</td>
                         </tr>
                         <tr *ngIf="leaveHistory.length === 0">
@@ -428,31 +449,29 @@
             </div>
         </div>
     </div>
-</div>
+
     <!-- ATTENDANCE OVERVIEW PAGE -->
     <div *ngIf="activeContent === 'attendance'">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="mb-4">📊 Attendance Overview</h2>
-                <div class="row mb-3"><div class="col-md-3"><label>Select Date</label><input type="date" class="form-control" [(ngModel)]="attendanceDate" (change)="loadAllAttendance()"></div></div>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead class="table-dark">
-                            <tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Hours</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let att of allAttendances">
-                                <td>{{ att.employee?.name }}</td>
-                                <td>{{ att.date | date:'dd MMM yyyy' }}</td>
-                                <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
-                                <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
-                                <td><span class="badge" [class.bg-success]="att.status === 'Present'">{{ att.status }}</span></td>
-                                <td>{{ att.totalWorkHours || 0 }} hrs</td>
-                                </tr>
-                            <tr *ngIf="allAttendances.length === 0"><td colspan="6" class="text-center">No records</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+        <div class="content-card">
+            <h2>📊 Attendance Overview</h2>
+            <div class="row mb-3"><div class="col-md-3"><label>Select Date</label><input type="date" class="form-control" [(ngModel)]="attendanceDate" (change)="loadAllAttendance()"></div></div>
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Hours</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let att of allAttendances">
+                            <td><strong>{{ att.employee?.name }}</strong></td>
+                            <td>{{ att.date | date:'dd MMM yyyy' }}</td>
+                            <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
+                            <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
+                            <td><span class="status-badge status-completed">{{ att.status }}</span></td>
+                            <td>{{ att.totalWorkHours || 0 }} hrs</td>
+                        </tr>
+                        <tr *ngIf="allAttendances.length === 0"><td colspan="6" class="text-center">No records</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -505,6 +524,196 @@
 }
 
 <style>
+    /* ===== MODERN DASHBOARD CSS ===== */
+    .dashboard-header {
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    .header-content h1 {
+        margin: 0 0 8px 0;
+        color: #1e293b;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+    .header-content p {
+        margin: 0;
+        color: #64748b;
+        font-size: 16px;
+    }
+
+    /* Welcome Card */
+    .welcome-section { margin-bottom: 32px; }
+    .welcome-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .welcome-avatar {
+        width: 100px; height: 100px; border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 40px; font-weight: 700;
+        border: 3px solid rgba(255,255,255,0.3); flex-shrink: 0;
+        overflow: hidden;
+    }
+    .welcome-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .welcome-text h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .welcome-text p { font-size: 16px; opacity: 0.9; margin: 0; }
+
+    /* Stats Grid */
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    .dashboard-card {
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: #ffffff;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .dashboard-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, var(--card-color) 0%, var(--card-color-light) 100%);
+        opacity: 0.6;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .card-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    .stat-icon-wrapper {
+        width: 56px; height: 56px; border-radius: 16px;
+        display: flex; justify-content: center; align-items: center;
+        background-color: var(--icon-bg); color: var(--card-color);
+        font-size: 28px;
+    }
+    .trend-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 10px; border-radius: 20px;
+        font-size: 12px; font-weight: 600;
+        background: var(--trend-bg); color: var(--trend-color);
+    }
+    .stat-value { margin: 0; font-size: 36px; font-weight: 700; color: #1e293b; line-height: 1.2; }
+    .stat-title { font-size: 15px; font-weight: 600; color: #64748b; margin-top: 8px; }
+    .stat-subtitle { font-size: 13px; font-weight: 500; margin-top: 4px; color: var(--card-color); }
+
+    /* Card Colors */
+    .card-blue { --card-color: #3b82f6; --card-color-light: #93c5fd; --icon-bg: rgba(59,130,246,0.12); --trend-bg: rgba(59,130,246,0.1); --trend-color: #3b82f6; }
+    .card-green { --card-color: #10b981; --card-color-light: #6ee7b7; --icon-bg: rgba(16,185,129,0.12); --trend-bg: rgba(16,185,129,0.1); --trend-color: #10b981; }
+    .card-purple { --card-color: #8b5cf6; --card-color-light: #c4b5fd; --icon-bg: rgba(139,92,246,0.12); --trend-bg: rgba(139,92,246,0.1); --trend-color: #8b5cf6; }
+    .card-orange { --card-color: #f59e0b; --card-color-light: #fcd34d; --icon-bg: rgba(245,158,11,0.12); --trend-bg: rgba(245,158,11,0.1); --trend-color: #f59e0b; }
+
+    /* Content Card */
+    .content-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        margin-bottom: 24px;
+    }
+    .content-card h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 20px;
+    }
+
+    /* Modern Table */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .modern-table th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .modern-table td {
+        padding: 14px 16px;
+        color: #334155;
+        font-size: 14px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .modern-table tr:hover td {
+        background: #f8fafc;
+    }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-inactive { background: #fee2e2; color: #991b1b; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-completed { background: #dcfce7; color: #166534; }
+    .status-urgent { background: #fee2e2; color: #991b1b; }
+    .status-high { background: #ffedd5; color: #9a3412; }
+
+    .btn-modern {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-danger-modern {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    .btn-danger-modern:hover {
+        background: #fecaca;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .dashboard-card {
+        animation: fadeInUp 0.5s ease forwards;
+    }
+    .dashboard-card:nth-child(1) { animation-delay: 0.1s; }
+    .dashboard-card:nth-child(2) { animation-delay: 0.2s; }
+    .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
+    .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
+
+    /* ===== EXISTING SIDEBAR & NAVBAR STYLES (PRESERVED) ===== */
     .sidebar-menu { padding: 12px 0; }
     .sidebar-section-title { 
         padding: 12px 22px; 
@@ -552,9 +761,16 @@
     .profile-menu { position: absolute; top: 60px; right: 20px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); min-width: 220px; z-index: 1500; overflow: hidden; }
     .menu-toggle-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 6px; padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; margin-right: 12px; }
     .menu-bar { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; }
-    .welcome-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
     .employee-photo-large { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid white; }
     .employee-photo-placeholder-large { width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.3); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; }
     .stat-card { border-radius: 10px; transition: transform 0.3s; margin-bottom: 15px; }
     .stat-card:hover { transform: translateY(-5px); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .cards-grid { grid-template-columns: 1fr; }
+        .dashboard-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .welcome-card { flex-direction: column; text-align: center; padding: 24px; }
+        .welcome-avatar { width: 80px; height: 80px; font-size: 32px; }
+    }
 </style>

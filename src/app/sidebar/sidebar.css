@@ -84,3 +84,10 @@
 .submenu-label {
     flex: 1;
 }
+.sidebar-item.active {
+    background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4f46e5;
+    font-weight: 700;
+    border-left: 4px solid #4f46e5;  /* <-- thicker left border */
+    box-shadow: 2px 0 8px rgba(79, 70, 229, 0.2);
+}
