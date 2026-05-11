@@ -128,6 +128,7 @@
 
     </div>
 </div>
+
 <div class="container mt-4">
     <!-- WELCOME / HOME PAGE (Shows first) -->
     <div *ngIf="showHomePage">
@@ -232,7 +233,15 @@
                 <div class="table-responsive">
                     <table class="modern-table">
                         <thead>
-                            <tr><th>#</th><th>Name</th><th>Email</th><th>Department</th><th>Designation</th><th>Status</th><th>Actions</th></tr>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Designation</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
                         </thead>
                         <tbody>
                             @for (emp of employeeList; track emp.id) {
@@ -247,7 +256,10 @@
                                             {{ emp.isActive ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>
-                                    <td><button class="btn-modern btn-danger-modern" (click)="deleteEmployee(emp.id)">Delete</button></td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm me-1" (click)="viewEmployeeDocuments(emp.id)">📄 Docs</button>
+                                        <button class="btn btn-danger btn-sm" (click)="deleteEmployee(emp.id)">Delete</button>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -326,6 +338,62 @@
                     <label>Address *</label>
                     <textarea class="form-control" rows="2" [(ngModel)]="newEmployee.address"></textarea>
                 </div>
+                
+                <!-- Documents Section -->
+                <div class="col-md-12 mb-3">
+                    <label class="form-label fw-bold">📄 Employee Documents</label>
+                    <div class="alert alert-info">
+                        <small>Upload certificates, NID, Parents' NID. (Max 5MB per file)</small>
+                    </div>
+                    
+                    <!-- Uploaded Documents List -->
+                    <div class="mb-3" *ngIf="employeeDocuments.length > 0">
+                        <label class="form-label">Uploaded Documents:</label>
+                        <div class="list-group">
+                            <div *ngFor="let doc of employeeDocuments; let i = index" class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ doc.documentType }}</strong> - {{ doc.documentName }}
+                                    <br>
+                                    <small class="text-muted">Uploaded: {{ doc.uploadedDate | date:'dd MMM yyyy' }}</small>
+                                </div>
+                                <button class="btn btn-danger btn-sm" (click)="removeDocument(doc.id, i)">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Document Button -->
+                    <button type="button" class="btn btn-outline-primary btn-sm mb-2" (click)="addDocumentField()">
+                        + Add Document
+                    </button>
+                    
+                    <!-- Dynamic Document Fields -->
+                    <div *ngFor="let doc of documentFields; let i = index" class="card mb-2 p-3">
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label">Document Type</label>
+                                <select class="form-select" [(ngModel)]="doc.documentType">
+                                    <option value="">Select Type</option>
+                                    <option value="Certificate">Certificate</option>
+                                    <option value="NID">NID (National ID)</option>
+                                    <option value="ParentsNID">Parents' NID</option>
+                                    <option value="Degree">Degree Certificate</option>
+                                    <option value="Experience">Experience Letter</option>
+                                    <option value="Training">Training Certificate</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Document File</label>
+                                <input type="file" class="form-control" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" (change)="onDocumentSelected($event, i)"/>
+                                <small class="text-muted">Allowed: JPG, PNG, PDF, DOC (Max 5MB)</small>
+                            </div>
+                            <div class="col-md-2 mb-2 d-flex align-items-end">
+                                <button class="btn btn-danger btn-sm" (click)="removeDocumentField(i)">Remove</button>
+                            </div>
+                        </div>
+                        <div *ngIf="doc.fileError" class="alert alert-danger mt-2">{{ doc.fileError }}</div>
+                    </div>
+                </div>
             </div>
             <button class="btn btn-success" (click)="createEmployee()" [disabled]="empSaving">{{ empSaving ? 'Saving...' : 'Create Employee' }}</button>
             <button class="btn btn-secondary ms-2" (click)="onMenuClick('employees')">Cancel</button>
@@ -359,7 +427,7 @@
                         </tr>
                         <tr *ngIf="adminTasks.length === 0">
                             <td colspan="6" class="text-center">No tasks found</td>
-                        </tr>
+                            </tr>
                     </tbody>
                 </table>
             </div>
@@ -373,7 +441,16 @@
             <div class="table-responsive">
                 <table class="modern-table">
                     <thead>
-                        <tr><th>Employee</th><th>Type</th><th>Start</th><th>End</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Type</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Days</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr *ngFor="let leave of leaveRequests">
@@ -395,7 +472,9 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr *ngIf="leaveRequests.length === 0"><td colspan="8" class="text-center">No pending leaves</td></tr>
+                        <tr *ngIf="leaveRequests.length === 0">
+                            <td colspan="8" class="text-center">No pending leaves</td>
+                            </tr>
                     </tbody>
                 </table>
             </div>
@@ -443,7 +522,7 @@
                         </tr>
                         <tr *ngIf="leaveHistory.length === 0">
                             <td colspan="6" class="text-center">No history found</td>
-                        </tr>
+                            </tr>
                     </tbody>
                 </table>
             </div>
@@ -454,11 +533,23 @@
     <div *ngIf="activeContent === 'attendance'">
         <div class="content-card">
             <h2>📊 Attendance Overview</h2>
-            <div class="row mb-3"><div class="col-md-3"><label>Select Date</label><input type="date" class="form-control" [(ngModel)]="attendanceDate" (change)="loadAllAttendance()"></div></div>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label>Select Date</label>
+                    <input type="date" class="form-control" [(ngModel)]="attendanceDate" (change)="loadAllAttendance()">
+                </div>
+            </div>
             <div class="table-responsive">
                 <table class="modern-table">
                     <thead>
-                        <tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Hours</th></tr>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Status</th>
+                            <th>Hours</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr *ngFor="let att of allAttendances">
@@ -468,14 +559,52 @@
                             <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
                             <td><span class="status-badge status-completed">{{ att.status }}</span></td>
                             <td>{{ att.totalWorkHours || 0 }} hrs</td>
-                        </tr>
-                        <tr *ngIf="allAttendances.length === 0"><td colspan="6" class="text-center">No records</td></tr>
+                            </tr>
+                        <tr *ngIf="allAttendances.length === 0">
+                            <td colspan="6" class="text-center">No records</td>
+                            </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- View Documents Modal -->
+@if (showDocumentsModal) {
+    <div class="modal-overlay" (click)="closeDocumentsModal()">
+        <div class="modal-box large" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">📄 Employee Documents</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Document Type</th>
+                            <th>File Name</th>
+                            <th>Uploaded Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let doc of employeeDocuments; let i = index">
+                            <td>{{ doc.documentType }}</td>
+                            <td>{{ doc.documentName }}</td>
+                            <td>{{ doc.uploadedDate | date:'dd MMM yyyy' }}</td>
+                            <td>
+                                <a [href]="apiUrl + doc.documentPath" target="_blank" class="btn btn-info btn-sm me-1">View</a>
+                                <button class="btn btn-danger btn-sm" (click)="deleteDocument(doc.id, i)">Delete</button>
+                            </td>
+                        </tr>
+                        <tr *ngIf="employeeDocuments.length === 0">
+                            <td colspan="4" class="text-center">No documents found</td>
+                            </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-secondary w-100 mt-3" (click)="closeDocumentsModal()">Close</button>
+        </div>
+    </div>
+}
 
 <!-- Modals -->
 @if (showTaskModal) {
@@ -644,8 +773,7 @@
     /* Modern Table */
     .modern-table {
         width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
+        border-collapse: collapse;
     }
     .modern-table th {
         background: #f8fafc;
@@ -713,7 +841,7 @@
     .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
     .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
 
-    /* ===== EXISTING SIDEBAR & NAVBAR STYLES (PRESERVED) ===== */
+    /* ===== EXISTING SIDEBAR & NAVBAR STYLES ===== */
     .sidebar-menu { padding: 12px 0; }
     .sidebar-section-title { 
         padding: 12px 22px; 
@@ -742,29 +870,105 @@
         transition: all 0.2s;
         border-left: 2px solid transparent;
     }
+    .sidebar-subitem.active {
+        background: #eeeef8;
+        color: #1a1a2e;
+        font-weight: 700;
+        border-left-color: #1a1a2e !important;
+    }
     .sidebar-subitem:hover { background: #f0f0f8; color: #1a1a2e; border-left-color: #1a1a2e; }
     .sidebar-icon { font-size: 16px; width: 24px; text-align: center; }
     .sidebar-label { flex: 1; }
-    .inactive-row { background: #fff5f5 !important; opacity: 0.8; }
     .badge.bg-danger { font-size: 10px; padding: 2px 6px; margin-left: 5px; }
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-    .modal-box { background: white; border-radius: 15px; padding: 25px; width: 450px; max-width: 90%; }
+    
+    /* Modal */
+    .modal-overlay { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background: rgba(0,0,0,0.5); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        z-index: 2000; 
+    }
+    .modal-box { 
+        background: white; 
+        border-radius: 15px; 
+        padding: 25px; 
+        width: 450px; 
+        max-width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .modal-box.large { width: 700px; max-width: 90%; }
+    
     .preview-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #1a1a2e; }
-    .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 280px; background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1200; transform: translateX(-100%); transition: transform 0.3s; }
+    
+    /* Sidebar */
+    .sidebar { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        height: 100%; 
+        width: 280px; 
+        background: white; 
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
+        z-index: 1200; 
+        transform: translateX(-100%); 
+        transition: transform 0.3s; 
+    }
     .sidebar.sidebar-open { transform: translateX(0); }
-    .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: #1a1a2e; color: white; }
-    .sidebar-close-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; }
-    .sidebar-overlay, .click-outside-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1100; }
+    .sidebar-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 18px 20px; 
+        background: #1a1a2e; 
+        color: white; 
+    }
+    .sidebar-close-btn { 
+        background: rgba(255,255,255,0.2); 
+        border: none; 
+        color: white; 
+        width: 28px; 
+        height: 28px; 
+        border-radius: 6px; 
+        cursor: pointer; 
+    }
+    .sidebar-overlay, .click-outside-overlay { 
+        position: fixed; 
+        inset: 0; 
+        background: rgba(0,0,0,0.3); 
+        z-index: 1100; 
+    }
+    
+    /* Navbar */
     .profile-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
-    .profile-placeholder { width: 42px; height: 42px; border-radius: 50%; background: white; color: #1a1a2e; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .profile-placeholder { 
+        width: 42px; height: 42px; border-radius: 50%; 
+        background: white; color: #1a1a2e; 
+        display: flex; align-items: center; justify-content: center; 
+        font-weight: bold; 
+    }
     .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important; padding: 10px 20px; }
-    .profile-menu { position: absolute; top: 60px; right: 20px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); min-width: 220px; z-index: 1500; overflow: hidden; }
-    .menu-toggle-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 6px; padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; margin-right: 12px; }
+    .profile-menu { 
+        position: absolute; top: 60px; right: 20px; 
+        background: white; border-radius: 12px; 
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15); 
+        min-width: 220px; z-index: 1500; overflow: hidden; 
+    }
+    .menu-toggle-btn { 
+        background: rgba(255,255,255,0.15); 
+        border: none; border-radius: 6px; 
+        padding: 8px 10px; cursor: pointer; 
+        display: flex; flex-direction: column; gap: 5px; 
+        margin-right: 12px; 
+    }
     .menu-bar { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; }
-    .employee-photo-large { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid white; }
-    .employee-photo-placeholder-large { width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.3); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; }
-    .stat-card { border-radius: 10px; transition: transform 0.3s; margin-bottom: 15px; }
-    .stat-card:hover { transform: translateY(-5px); }
+    .inactive-row { background: #fff5f5 !important; opacity: 0.8; }
 
     /* Responsive */
     @media (max-width: 768px) {
@@ -772,5 +976,6 @@
         .dashboard-header { flex-direction: column; align-items: flex-start; gap: 16px; }
         .welcome-card { flex-direction: column; text-align: center; padding: 24px; }
         .welcome-avatar { width: 80px; height: 80px; font-size: 32px; }
+        .modal-box.large { width: 95%; }
     }
 </style>
