@@ -1,8 +1,7 @@
 import { Component, OnInit, PLATFORM_ID, Inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-
+import { Router, ActivatedRoute } from '@angular/router'; // Add ActivatedRoute
 @Component({
     selector: 'app-admin',
     standalone: true,
@@ -32,12 +31,44 @@ export class AdminComponent implements OnInit {
         name: '', email: '', phone: '', address: '', designation: '', salary: 0,
         departmentId: '', joiningDate: new Date().toISOString().split('T')[0], temporaryPassword: ''
     };
+
+    // Edit Employee Properties
+showEditEmployeeModal: boolean = false;
+editEmployeeData: any = {
+    id: 0,
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    designation: '',
+    salary: 0,
+    departmentId: '',
+    joiningDate: '',
+    photo: ''
+};
+editSelectedPhoto: File | null = null;
+editPhotoPreview: string | null = null;
+editEmployeeSaving: boolean = false;
+editEmployeeError: string = '';
+editEmployeeSuccess: string = '';
+
+    // Employee List Pagination & Filter Properties
+employeeSearchText: string = '';
+employeeDepartmentFilter: any = '';
+employeeStatusFilter: string = 'active';
+employeeCurrentPage: number = 1;
+employeePageSize: number = 10;
+employeeTotalEmployees: number = 0;
+employeeTotalPages: number = 0;
+private employeeSearchTimeout: any;
     
     // Document Properties
-    employeeDocuments: any[] = [];
-    documentFields: any[] = [];
-    uploadingDocuments: boolean = false;
-    showDocumentsModal: boolean = false;
+employeeDocuments: any[] = [];
+documentFields: any[] = [];
+uploadingDocuments: boolean = false;
+showDocumentsModal: boolean = false;
+documentsLoading: boolean = false;
+selectedEmployeeName: string = '';
 
     // Profile
     email: string = '';
@@ -113,6 +144,13 @@ export class AdminComponent implements OnInit {
     Math = Math;
     private searchTimeout: any;
 
+formatFileSize(bytes: number): string {
+  if (!bytes || bytes === 0) return '0 B';
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
     constructor(
         private router: Router,
         private cdr: ChangeDetectorRef,
@@ -120,37 +158,50 @@ export class AdminComponent implements OnInit {
     ) {}
 
     ngOnInit() {
-        if (!isPlatformBrowser(this.platformId)) return;
+    if (!isPlatformBrowser(this.platformId)) return;
 
-        const token = localStorage.getItem('token');
-        const role = localStorage.getItem('role');
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
 
-        if (!token) {
-            this.router.navigate(['/login']);
-            return;
-        }
+    if (!token) {
+        this.router.navigate(['/login']);
+        return;
+    }
 
-        if (role !== 'Admin') {
-            this.router.navigate(['/home']);
-            return;
-        }
+    if (role !== 'Admin') {
+        this.router.navigate(['/home']);
+        return;
+    }
 
-        this.email = localStorage.getItem('email') || '';
-        this.fullName = localStorage.getItem('fullName') || '';
-        this.profileImage = localStorage.getItem('profileImage') || null;
-        this.editFullName = this.fullName;
+    this.email = localStorage.getItem('email') || '';
+    this.fullName = localStorage.getItem('fullName') || '';
+    this.profileImage = localStorage.getItem('profileImage') || null;
+    this.editFullName = this.fullName;
 
+    // Check if we need to return to employees page
+    const returnToEmployees = localStorage.getItem('returnToEmployees');
+    if (returnToEmployees === 'true') {
+        // Clear the flag
+        localStorage.removeItem('returnToEmployees');
+        // Show employee list instead of home page
+        this.showHomePage = false;
+        this.activeContent = 'employees';
+        this.resetEmployeeFilters(); // Load employees with pagination
+    } else {
         this.showHomePage = true;
         this.activeContent = '';
-
-        this.loadUsers();
-        this.loadEmployees();
-        this.loadDepartments();
-        this.loadAdminTasks();
-        this.loadAllAttendance();
-        this.loadPendingLeaves();
-        this.loadLeaveHistory();
     }
+
+    this.loadUsers();
+    this.loadEmployees();
+    this.loadDepartments();
+    this.loadAdminTasks();
+    this.loadAllAttendance();
+    this.loadPendingLeaves();
+    this.loadLeaveHistory();
+}
+
+    
 
     // ==================== HELPER METHODS ====================
     getActiveUsersCount(): number {
@@ -169,31 +220,32 @@ export class AdminComponent implements OnInit {
     }
 
     onMenuClick(menuItem: string) {
-        this.showHomePage = false;
-        this.activeContent = menuItem;
-        this.showSidebar = false;
-        
-        switch(menuItem) {
-            case 'employees':
-                this.loadEmployeesList();
-                break;
-            case 'createemployee':
-                this.resetNewEmployeeForm();
-                break;
-            case 'tasks':
-                this.loadAdminTasks();
-                break;
-            case 'leaverequests':
-                this.loadPendingLeaves();
-                break;
-            case 'leavehistory':
-                this.loadLeaveHistory();
-                break;
-            case 'attendance':
-                this.loadAllAttendance();
-                break;
-        }
+    console.log('Menu clicked:', menuItem);
+    this.showHomePage = false;
+    this.activeContent = menuItem;
+    this.showSidebar = false;
+    
+    switch(menuItem) {
+        case 'employees':
+            this.resetEmployeeFilters(); // This will load with pagination
+            break;
+        case 'createemployee':
+            this.resetNewEmployeeForm();
+            break;
+        case 'tasks':
+            this.loadAdminTasks();
+            break;
+        case 'leaverequests':
+            this.loadPendingLeaves();
+            break;
+        case 'leavehistory':
+            this.loadLeaveHistory();
+            break;
+        case 'attendance':
+            this.loadAllAttendance();
+            break;
     }
+}
 
     toggleSection(section: string) {
         this.expandedSections[section] = !this.expandedSections[section];
@@ -201,28 +253,99 @@ export class AdminComponent implements OnInit {
     }
 
     // ==================== EMPLOYEE LIST METHODS ====================
-    loadEmployeesList() {
-        const token = localStorage.getItem('token');
-        this.empLoading = true;
-        this.cdr.detectChanges();
-        
-        fetch('https://localhost:7141/api/employees?pageSize=100', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(response => response.json())
-        .then(data => {
-            this.employeeList = data.employees || [];
-            this.empLoading = false;
-            this.cdr.detectChanges();
-        })
-        .catch(error => {
-            console.error('Error loading employees:', error);
-            this.empLoading = false;
-            this.cdr.detectChanges();
-        });
+    // ==================== EMPLOYEE LIST WITH PAGINATION ====================
+loadEmployeesList() {
+    const token = localStorage.getItem('token');
+    this.empLoading = true;
+    this.cdr.detectChanges();
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    params.append('page', this.employeeCurrentPage.toString());
+    params.append('pageSize', this.employeePageSize.toString());
+    params.append('search', this.employeeSearchText);
+    params.append('status', this.employeeStatusFilter);
+    
+    if (this.employeeDepartmentFilter) {
+        params.append('departmentId', this.employeeDepartmentFilter);
     }
+    
+    const url = `https://localhost:7141/api/employees?${params.toString()}`;
+    
+    fetch(url, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(response => response.json())
+    .then(data => {
+        this.employeeList = data.employees || [];
+        this.employeeTotalEmployees = data.totalEmployees || 0;
+        this.employeeTotalPages = data.totalPages || 0;
+        this.empLoading = false;
+        this.cdr.detectChanges();
+    })
+    .catch(error => {
+        console.error('Error loading employees:', error);
+        this.employeeList = [];
+        this.empLoading = false;
+        this.cdr.detectChanges();
+    });
+}
 
+// Search with debounce
+onEmployeeSearch() {
+    clearTimeout(this.employeeSearchTimeout);
+    this.employeeSearchTimeout = setTimeout(() => {
+        this.employeeCurrentPage = 1;
+        this.loadEmployeesList();
+    }, 500);
+}
+
+// Filter by department
+filterEmployeeByDepartment() {
+    this.employeeCurrentPage = 1;
+    this.loadEmployeesList();
+}
+
+// Filter by status (active/inactive/all)
+filterEmployeeByStatus(status: string) {
+    this.employeeStatusFilter = status;
+    this.employeeCurrentPage = 1;
+    this.loadEmployeesList();
+}
+
+// Reset all filters
+resetEmployeeFilters() {
+    this.employeeSearchText = '';
+    this.employeeDepartmentFilter = '';
+    this.employeeStatusFilter = 'active';
+    this.employeeCurrentPage = 1;
+    this.loadEmployeesList();
+}
+
+// Change page
+changeEmployeePage(page: number) {
+    if (page < 1 || page > this.employeeTotalPages) return;
+    this.employeeCurrentPage = page;
+    this.loadEmployeesList();
+}
+
+// Get page numbers for pagination
+getEmployeePages(): number[] {
+    const pages = [];
+    const maxPages = 5;
+    let startPage = Math.max(1, this.employeeCurrentPage - Math.floor(maxPages / 2));
+    let endPage = Math.min(this.employeeTotalPages, startPage + maxPages - 1);
+    
+    if (endPage - startPage + 1 < maxPages) {
+        startPage = Math.max(1, endPage - maxPages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+    }
+    return pages;
+}
     loadDepartments() {
         const token = localStorage.getItem('token');
         
@@ -346,22 +469,12 @@ export class AdminComponent implements OnInit {
         .catch(error => console.error('Error deleting document:', error));
     }
 
-    viewEmployeeDocuments(employeeId: number) {
-        const token = localStorage.getItem('token');
-
-        fetch(`https://localhost:7141/api/employees/${employeeId}/documents`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(response => response.json())
-        .then(data => {
-            this.employeeDocuments = data;
-            this.showDocumentsModal = true;
-            this.cdr.detectChanges();
-        })
-        .catch(error => console.error('Error loading documents:', error));
-    }
-
+   viewEmployeeDocuments(employeeId: number, employeeName: string) {
+    console.log('Navigating to documents for:', employeeId, employeeName);
+    this.router.navigate(['/admin/documents', employeeId], {
+        queryParams: { name: employeeName }
+    });
+}
     closeDocumentsModal() {
         this.showDocumentsModal = false;
         this.employeeDocuments = [];
@@ -383,6 +496,182 @@ export class AdminComponent implements OnInit {
         })
         .catch(error => console.error('Error deleting document:', error));
     }
+
+    // ==================== EMPLOYEE ACTIONS ====================
+
+// Deactivate Employee
+deactivateEmployee(id: number) {
+    if (!confirm('Are you sure you want to deactivate this employee? They will not be able to login.')) return;
+    
+    const token = localStorage.getItem('token');
+    
+    fetch(`https://localhost:7141/api/employees/${id}/deactivate`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || 'Employee deactivated successfully');
+        this.loadEmployeesList(); // Refresh the list
+        this.cdr.detectChanges();
+    })
+    .catch(error => {
+        console.error('Error deactivating employee:', error);
+        alert('Failed to deactivate employee');
+    });
+}
+
+// Restore Employee
+restoreEmployee(id: number) {
+    if (!confirm('Are you sure you want to restore this employee? They will be able to login again.')) return;
+    
+    const token = localStorage.getItem('token');
+    
+    fetch(`https://localhost:7141/api/employees/${id}/restore`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || 'Employee restored successfully');
+        this.loadEmployeesList(); // Refresh the list
+        this.cdr.detectChanges();
+    })
+    .catch(error => {
+        console.error('Error restoring employee:', error);
+        alert('Failed to restore employee');
+    });
+}
+
+// ==================== EDIT EMPLOYEE METHODS ====================
+
+// Open Edit Employee Modal
+openEditEmployeeModal(emp: any) {
+    this.editEmployeeData = {
+        id: emp.id,
+        name: emp.name,
+        email: emp.email,
+        phone: emp.phone || '',
+        address: emp.address || '',
+        designation: emp.designation,
+        salary: emp.salary,
+        departmentId: emp.departmentId,
+        joiningDate: new Date(emp.joiningDate).toISOString().split('T')[0],
+        photo: emp.photo || ''
+    };
+    this.editSelectedPhoto = null;
+    this.editPhotoPreview = null;
+    this.editEmployeeError = '';
+    this.editEmployeeSuccess = '';
+    this.showEditEmployeeModal = true;
+    this.cdr.detectChanges();
+}
+
+// Close Edit Employee Modal
+closeEditEmployeeModal() {
+    this.showEditEmployeeModal = false;
+    this.editEmployeeData = {
+        id: 0,
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        designation: '',
+        salary: 0,
+        departmentId: '',
+        joiningDate: '',
+        photo: ''
+    };
+    this.editSelectedPhoto = null;
+    this.editPhotoPreview = null;
+    this.editEmployeeError = '';
+    this.editEmployeeSuccess = '';
+    this.cdr.detectChanges();
+}
+
+// On Photo Selected for Edit
+onEditPhotoSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            this.editEmployeeError = 'File size must be less than 5MB';
+            return;
+        }
+        
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            this.editEmployeeError = 'Invalid file type. Allowed: JPG, PNG';
+            return;
+        }
+        
+        this.editSelectedPhoto = file;
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            this.editPhotoPreview = e.target.result;
+            this.cdr.detectChanges();
+        };
+        reader.readAsDataURL(file);
+        this.editEmployeeError = '';
+    }
+}
+
+// Update Employee
+updateEmployee() {
+    if (!this.editEmployeeData.name || !this.editEmployeeData.email ||
+        !this.editEmployeeData.phone || !this.editEmployeeData.address ||
+        !this.editEmployeeData.designation || !this.editEmployeeData.salary ||
+        !this.editEmployeeData.departmentId) {
+        this.editEmployeeError = 'Please fill in all required fields';
+        this.cdr.detectChanges();
+        return;
+    }
+    
+    this.editEmployeeSaving = true;
+    this.editEmployeeError = '';
+    this.editEmployeeSuccess = '';
+    
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    
+    formData.append('name', this.editEmployeeData.name);
+    formData.append('email', this.editEmployeeData.email);
+    formData.append('phone', this.editEmployeeData.phone);
+    formData.append('address', this.editEmployeeData.address);
+    formData.append('designation', this.editEmployeeData.designation);
+    formData.append('salary', this.editEmployeeData.salary.toString());
+    formData.append('departmentId', this.editEmployeeData.departmentId.toString());
+    formData.append('joiningDate', this.editEmployeeData.joiningDate);
+    
+    if (this.editSelectedPhoto) {
+        formData.append('photo', this.editSelectedPhoto);
+    }
+    
+    fetch(`https://localhost:7141/api/employees/${this.editEmployeeData.id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (response.ok) {
+            this.editEmployeeSuccess = 'Employee updated successfully!';
+            setTimeout(() => {
+                this.closeEditEmployeeModal();
+                this.loadEmployeesList(); // Refresh the list
+            }, 1500);
+        } else {
+            this.editEmployeeError = data.message || 'Failed to update employee';
+        }
+        this.editEmployeeSaving = false;
+        this.cdr.detectChanges();
+    })
+    .catch(error => {
+        console.error('Error updating employee:', error);
+        this.editEmployeeError = 'Something went wrong';
+        this.editEmployeeSaving = false;
+        this.cdr.detectChanges();
+    });
+}
 
     // ==================== CREATE EMPLOYEE ====================
     createEmployee() {

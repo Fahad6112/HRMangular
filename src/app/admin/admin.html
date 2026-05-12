@@ -1,3 +1,4 @@
+<!-- ===== NAVBAR ===== -->
 <nav class="navbar navbar-expand-sm navbar-dark">
     <div class="container-fluid">
         <button class="menu-toggle-btn" (click)="toggleSidebar(); $event.stopPropagation()">
@@ -37,6 +38,7 @@
     </div>
 </nav>
 
+<!-- Click-outside overlays -->
 @if (showMenu) {
     <div class="click-outside-overlay" (click)="showMenu = false"></div>
 }
@@ -45,94 +47,107 @@
     <div class="sidebar-overlay" (click)="showSidebar = false"></div>
 }
 
+<!-- ===== SIDEBAR ===== -->
 <div class="sidebar" [class.sidebar-open]="showSidebar">
     <div class="sidebar-header">
         <span class="sidebar-title">📋 Menu</span>
         <button class="sidebar-close-btn" (click)="showSidebar = false">✕</button>
     </div>
     <div class="sidebar-menu">
-        
+
         <!-- Management Section -->
         <div class="sidebar-section-title" (click)="toggleSection('management')">
-            👥 MANAGEMENT 
+            👥 MANAGEMENT
             <span class="section-arrow">{{ expandedSections['management'] ? '▼' : '▶' }}</span>
         </div>
-        <div class="sidebar-submenu" *ngIf="expandedSections['management']">
-            <div class="sidebar-subitem" 
-                 [class.active]="activeMenu === 'employees'"
-                 (click)="onMenuClick('employees'); activeMenu = 'employees'; toggleSidebar()">
-                <span class="sidebar-icon">📋</span>
-                <span class="sidebar-label">Employee List</span>
+        @if (expandedSections['management']) {
+            <div class="sidebar-submenu">
+                <div class="sidebar-subitem"
+                     [class.active]="activeMenu === 'employees'"
+                     (click)="onMenuClick('employees'); activeMenu = 'employees'; toggleSidebar()">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-label">Employee List</span>
+                </div>
+                <div class="sidebar-subitem"
+                     [class.active]="activeMenu === 'createemployee'"
+                     (click)="onMenuClick('createemployee'); activeMenu = 'createemployee'; toggleSidebar()">
+                    <span class="sidebar-icon">➕</span>
+                    <span class="sidebar-label">Create Employee</span>
+                </div>
             </div>
-            <div class="sidebar-subitem"
-                 [class.active]="activeMenu === 'createemployee'"
-                 (click)="onMenuClick('createemployee'); activeMenu = 'createemployee'; toggleSidebar()">
-                <span class="sidebar-icon">➕</span>
-                <span class="sidebar-label">Create Employee</span>
-            </div>
-        </div>
+        }
 
         <!-- Tasks Section -->
         <div class="sidebar-section-title" (click)="toggleSection('tasks')">
-            📋 TASKS 
+            📋 TASKS
             <span class="section-arrow">{{ expandedSections['tasks'] ? '▼' : '▶' }}</span>
         </div>
-        <div class="sidebar-submenu" *ngIf="expandedSections['tasks']">
-            <div class="sidebar-subitem"
-                 [class.active]="activeMenu === 'tasks'"
-                 (click)="onMenuClick('tasks'); activeMenu = 'tasks'; toggleSidebar()">
-                <span class="sidebar-icon">📋</span>
-                <span class="sidebar-label">Task Management</span>
+        @if (expandedSections['tasks']) {
+            <div class="sidebar-submenu">
+                <div class="sidebar-subitem"
+                     [class.active]="activeMenu === 'tasks'"
+                     (click)="onMenuClick('tasks'); activeMenu = 'tasks'; toggleSidebar()">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-label">Task Management</span>
+                </div>
+                <div class="sidebar-subitem"
+                     (click)="openAssignTaskModal(); toggleSidebar()">
+                    <span class="sidebar-icon">➕</span>
+                    <span class="sidebar-label">Assign New Task</span>
+                </div>
             </div>
-            <div class="sidebar-subitem"
-                 (click)="openAssignTaskModal(); toggleSidebar()">
-                <span class="sidebar-icon">➕</span>
-                <span class="sidebar-label">Assign New Task</span>
-            </div>
-        </div>
+        }
 
         <!-- Leaves Section -->
         <div class="sidebar-section-title" (click)="toggleSection('leaves')">
-            📅 LEAVES 
+            📅 LEAVES
             <span class="section-arrow">{{ expandedSections['leaves'] ? '▼' : '▶' }}</span>
         </div>
-        <div class="sidebar-submenu" *ngIf="expandedSections['leaves']">
-            <div class="sidebar-subitem"
-                 [class.active]="activeMenu === 'leaverequests'"
-                 (click)="onMenuClick('leaverequests'); activeMenu = 'leaverequests'; toggleSidebar()">
-                <span class="sidebar-icon">📝</span>
-                <span class="sidebar-label">Leave Requests</span>
-                <span class="badge bg-danger ms-2" *ngIf="pendingLeavesCount > 0">{{ pendingLeavesCount }}</span>
+        @if (expandedSections['leaves']) {
+            <div class="sidebar-submenu">
+                <div class="sidebar-subitem"
+                     [class.active]="activeMenu === 'leaverequests'"
+                     (click)="onMenuClick('leaverequests'); activeMenu = 'leaverequests'; toggleSidebar()">
+                    <span class="sidebar-icon">📝</span>
+                    <span class="sidebar-label">Leave Requests</span>
+                    @if (pendingLeavesCount > 0) {
+                        <span class="badge bg-danger ms-2">{{ pendingLeavesCount }}</span>
+                    }
+                </div>
+                <div class="sidebar-subitem"
+                     [class.active]="activeMenu === 'leavehistory'"
+                     (click)="onMenuClick('leavehistory'); activeMenu = 'leavehistory'; toggleSidebar()">
+                    <span class="sidebar-icon">📜</span>
+                    <span class="sidebar-label">Leave History</span>
+                </div>
             </div>
-            <div class="sidebar-subitem"
-                 [class.active]="activeMenu === 'leavehistory'"
-                 (click)="onMenuClick('leavehistory'); activeMenu = 'leavehistory'; toggleSidebar()">
-                <span class="sidebar-icon">📜</span>
-                <span class="sidebar-label">Leave History</span>
-            </div>
-        </div>
+        }
 
         <!-- Attendance Section -->
         <div class="sidebar-section-title" (click)="toggleSection('attendance')">
-            ⏰ ATTENDANCE 
+            ⏰ ATTENDANCE
             <span class="section-arrow">{{ expandedSections['attendance'] ? '▼' : '▶' }}</span>
         </div>
-        <div class="sidebar-submenu" *ngIf="expandedSections['attendance']">
-            <div class="sidebar-subitem"
-                 [class.active]="activeMenu === 'attendance'"
-                 (click)="onMenuClick('attendance'); activeMenu = 'attendance'; toggleSidebar()">
-                <span class="sidebar-icon">📊</span>
-                <span class="sidebar-label">Attendance Overview</span>
+        @if (expandedSections['attendance']) {
+            <div class="sidebar-submenu">
+                <div class="sidebar-subitem"
+                     [class.active]="activeMenu === 'attendance'"
+                     (click)="onMenuClick('attendance'); activeMenu = 'attendance'; toggleSidebar()">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Attendance Overview</span>
+                </div>
             </div>
-        </div>
+        }
 
     </div>
 </div>
 
+<!-- ===== MAIN CONTENT ===== -->
 <div class="container mt-4">
-    <!-- WELCOME / HOME PAGE (Shows first) -->
-    <div *ngIf="showHomePage">
-        <!-- Modern Welcome Card -->
+
+    <!-- HOME / DASHBOARD PAGE -->
+    @if (showHomePage) {
+        <!-- Welcome Card -->
         <div class="welcome-section">
             <div class="welcome-card">
                 <div class="welcome-avatar">
@@ -149,7 +164,7 @@
             </div>
         </div>
 
-        <!-- Modern Stats Cards -->
+        <!-- Dashboard Header -->
         <div class="dashboard-header">
             <div class="header-content">
                 <h1>Dashboard Overview</h1>
@@ -157,6 +172,7 @@
             </div>
         </div>
 
+        <!-- Stats Cards -->
         <div class="cards-grid">
             <div class="dashboard-card card-blue">
                 <div class="card-header-row">
@@ -199,7 +215,7 @@
             </div>
         </div>
 
-        <!-- Quick Stats Section -->
+        <!-- Quick Stats -->
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="content-card">
@@ -221,15 +237,67 @@
                 </div>
             </div>
         </div>
-    </div>
+    }
 
-    <!-- EMPLOYEE LIST PAGE -->
-    <div *ngIf="activeContent === 'employees'">
+    <!-- ===== EMPLOYEE LIST PAGE ===== -->
+    @if (activeContent === 'employees') {
         <div class="content-card">
             <h2>👨‍💼 Employee List</h2>
+
+            <!-- Search and Filter Bar -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text">🔍</span>
+                        <input
+                            type="text"
+                            class="form-control"
+                            placeholder="Search by name, email, designation..."
+                            [(ngModel)]="employeeSearchText"
+                            (input)="onEmployeeSearch()"/>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" [(ngModel)]="employeeDepartmentFilter" (change)="filterEmployeeByDepartment()">
+                        <option value="">All Departments</option>
+                        @for (dept of departments; track dept.id) {
+                            <option [value]="dept.id">{{ dept.name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button class="btn btn-sm"
+                            [class.btn-primary]="employeeStatusFilter === 'active'"
+                            [class.btn-outline-primary]="employeeStatusFilter !== 'active'"
+                            (click)="filterEmployeeByStatus('active')">
+                        ✅ Active
+                    </button>
+                    <button class="btn btn-sm"
+                            [class.btn-danger]="employeeStatusFilter === 'inactive'"
+                            [class.btn-outline-danger]="employeeStatusFilter !== 'inactive'"
+                            (click)="filterEmployeeByStatus('inactive')">
+                        ❌ Inactive
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" (click)="filterEmployeeByStatus('all')">
+                        👥 All
+                    </button>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button class="btn btn-primary btn-sm" (click)="resetEmployeeFilters()">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
             @if (empLoading) {
-                <div class="text-center"><div class="spinner-border text-primary"></div></div>
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             } @else {
+                <!-- Employee Table -->
                 <div class="table-responsive">
                     <table class="modern-table">
                         <thead>
@@ -244,37 +312,90 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @for (emp of employeeList; track emp.id) {
-                                <tr [class.inactive-row]="!emp.isActive">
-                                    <td>{{ $index + 1 }}</td>
+                            @if (employeeList.length === 0) {
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">No employees found</td>
+                                </tr>
+                            }
+                            @for (emp of employeeList; track emp.id; let i = $index) {
+                                <tr>
+                                    <td>{{ (employeeCurrentPage - 1) * employeePageSize + i + 1 }}</td>
                                     <td><strong>{{ emp.name }}</strong></td>
                                     <td>{{ emp.email }}</td>
                                     <td>{{ emp.departmentName }}</td>
                                     <td>{{ emp.designation }}</td>
                                     <td>
-                                        <span class="status-badge" [class.status-active]="emp.isActive" [class.status-inactive]="!emp.isActive">
+                                        <span class="status-badge"
+                                              [class.status-active]="emp.isActive"
+                                              [class.status-inactive]="!emp.isActive">
                                             {{ emp.isActive ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>
-                                    <td>
-                                        <button class="btn btn-info btn-sm me-1" (click)="viewEmployeeDocuments(emp.id)">📄 Docs</button>
-                                        <button class="btn btn-danger btn-sm" (click)="deleteEmployee(emp.id)">Delete</button>
+                                    <td class="actions-cell">
+                                        <button class="btn btn-info btn-sm me-1"
+                                                (click)="viewEmployeeDocuments(emp.id, emp.name)"
+                                                title="View Documents">📄</button>
+                                        <button class="btn btn-primary btn-sm me-1"
+                                                (click)="openEditEmployeeModal(emp)"
+                                                title="Edit Employee">✏️</button>
+                                        @if (emp.isActive) {
+                                            <button class="btn btn-warning btn-sm me-1"
+                                                    (click)="deactivateEmployee(emp.id)"
+                                                    title="Deactivate">🔴</button>
+                                        } @else {
+                                            <button class="btn btn-success btn-sm me-1"
+                                                    (click)="restoreEmployee(emp.id)"
+                                                    title="Restore">🟢</button>
+                                        }
+                                        <button class="btn btn-danger btn-sm"
+                                                (click)="deleteEmployee(emp.id)"
+                                                title="Delete Permanently">🗑️</button>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                @if (employeeTotalEmployees > 0) {
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted">
+                            Showing {{ (employeeCurrentPage - 1) * employeePageSize + 1 }}
+                            to {{ employeeCurrentPage * employeePageSize > employeeTotalEmployees ? employeeTotalEmployees : employeeCurrentPage * employeePageSize }}
+                            of {{ employeeTotalEmployees }} employees
+                        </div>
+                        <nav>
+                            <ul class="pagination mb-0">
+                                <li class="page-item" [class.disabled]="employeeCurrentPage === 1">
+                                    <a class="page-link" (click)="changeEmployeePage(employeeCurrentPage - 1)">Previous</a>
+                                </li>
+                                @for (page of getEmployeePages(); track page) {
+                                    <li class="page-item" [class.active]="page === employeeCurrentPage">
+                                        <a class="page-link" (click)="changeEmployeePage(page)">{{ page }}</a>
+                                    </li>
+                                }
+                                <li class="page-item" [class.disabled]="employeeCurrentPage === employeeTotalPages">
+                                    <a class="page-link" (click)="changeEmployeePage(employeeCurrentPage + 1)">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
             }
         </div>
-    </div>
+    }
 
-    <!-- CREATE EMPLOYEE PAGE -->
-    <div *ngIf="activeContent === 'createemployee'">
+    <!-- ===== CREATE EMPLOYEE PAGE ===== -->
+    @if (activeContent === 'createemployee') {
         <div class="content-card">
             <h2>➕ Create Employee</h2>
-            <div class="alert alert-danger" *ngIf="empError">{{ empError }}</div>
-            <div class="alert alert-success" *ngIf="empSuccess">{{ empSuccess }}</div>
+            @if (empError) {
+                <div class="alert alert-danger">{{ empError }}</div>
+            }
+            @if (empSuccess) {
+                <div class="alert alert-success">{{ empSuccess }}</div>
+            }
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label>Full Name *</label>
@@ -292,7 +413,9 @@
                     <label>Department *</label>
                     <select class="form-select" [(ngModel)]="newEmployee.departmentId">
                         <option value="">Select Department</option>
-                        <option *ngFor="let d of departments" [value]="d.id">{{ d.name }}</option>
+                        @for (d of departments; track d.id) {
+                            <option [value]="d.id">{{ d.name }}</option>
+                        }
                     </select>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -338,70 +461,81 @@
                     <label>Address *</label>
                     <textarea class="form-control" rows="2" [(ngModel)]="newEmployee.address"></textarea>
                 </div>
-                
+
                 <!-- Documents Section -->
                 <div class="col-md-12 mb-3">
                     <label class="form-label fw-bold">📄 Employee Documents</label>
                     <div class="alert alert-info">
                         <small>Upload certificates, NID, Parents' NID. (Max 5MB per file)</small>
                     </div>
-                    
+
                     <!-- Uploaded Documents List -->
-                    <div class="mb-3" *ngIf="employeeDocuments.length > 0">
-                        <label class="form-label">Uploaded Documents:</label>
-                        <div class="list-group">
-                            <div *ngFor="let doc of employeeDocuments; let i = index" class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ doc.documentType }}</strong> - {{ doc.documentName }}
-                                    <br>
-                                    <small class="text-muted">Uploaded: {{ doc.uploadedDate | date:'dd MMM yyyy' }}</small>
-                                </div>
-                                <button class="btn btn-danger btn-sm" (click)="removeDocument(doc.id, i)">Remove</button>
+                    @if (employeeDocuments.length > 0) {
+                        <div class="mb-3">
+                            <label class="form-label">Uploaded Documents:</label>
+                            <div class="list-group">
+                                @for (doc of employeeDocuments; track doc.id; let i = $index) {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ doc.documentType }}</strong> - {{ doc.documentName }}
+                                            <br/>
+                                            <small class="text-muted">Uploaded: {{ doc.uploadedDate | date:'dd MMM yyyy' }}</small>
+                                        </div>
+                                        <button class="btn btn-danger btn-sm" (click)="removeDocument(doc.id, i)">Remove</button>
+                                    </div>
+                                }
                             </div>
                         </div>
-                    </div>
-                    
+                    }
+
                     <!-- Add Document Button -->
                     <button type="button" class="btn btn-outline-primary btn-sm mb-2" (click)="addDocumentField()">
                         + Add Document
                     </button>
-                    
+
                     <!-- Dynamic Document Fields -->
-                    <div *ngFor="let doc of documentFields; let i = index" class="card mb-2 p-3">
-                        <div class="row">
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label">Document Type</label>
-                                <select class="form-select" [(ngModel)]="doc.documentType">
-                                    <option value="">Select Type</option>
-                                    <option value="Certificate">Certificate</option>
-                                    <option value="NID">NID (National ID)</option>
-                                    <option value="ParentsNID">Parents' NID</option>
-                                    <option value="Degree">Degree Certificate</option>
-                                    <option value="Experience">Experience Letter</option>
-                                    <option value="Training">Training Certificate</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                    @for (doc of documentFields; track $index; let i = $index) {
+                        <div class="card mb-2 p-3">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Document Type</label>
+                                    <select class="form-select" [(ngModel)]="doc.documentType">
+                                        <option value="">Select Type</option>
+                                        <option value="Certificate">Certificate</option>
+                                        <option value="NID">NID (National ID)</option>
+                                        <option value="ParentsNID">Parents' NID</option>
+                                        <option value="Degree">Degree Certificate</option>
+                                        <option value="Experience">Experience Letter</option>
+                                        <option value="Training">Training Certificate</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label">Document File</label>
+                                    <input type="file" class="form-control" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" (change)="onDocumentSelected($event, i)"/>
+                                    <small class="text-muted">Allowed: JPG, PNG, PDF, DOC (Max 5MB)</small>
+                                </div>
+                                <div class="col-md-2 mb-2 d-flex align-items-end">
+                                    <button class="btn btn-danger btn-sm" (click)="removeDocumentField(i)">Remove</button>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label">Document File</label>
-                                <input type="file" class="form-control" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" (change)="onDocumentSelected($event, i)"/>
-                                <small class="text-muted">Allowed: JPG, PNG, PDF, DOC (Max 5MB)</small>
-                            </div>
-                            <div class="col-md-2 mb-2 d-flex align-items-end">
-                                <button class="btn btn-danger btn-sm" (click)="removeDocumentField(i)">Remove</button>
-                            </div>
+                            @if (doc.fileError) {
+                                <div class="alert alert-danger mt-2">{{ doc.fileError }}</div>
+                            }
                         </div>
-                        <div *ngIf="doc.fileError" class="alert alert-danger mt-2">{{ doc.fileError }}</div>
-                    </div>
+                    }
                 </div>
             </div>
-            <button class="btn btn-success" (click)="createEmployee()" [disabled]="empSaving">{{ empSaving ? 'Saving...' : 'Create Employee' }}</button>
+
+            <button class="btn btn-success" (click)="createEmployee()" [disabled]="empSaving">
+                {{ empSaving ? 'Saving...' : 'Create Employee' }}
+            </button>
             <button class="btn btn-secondary ms-2" (click)="onMenuClick('employees')">Cancel</button>
         </div>
-    </div>
+    }
 
-    <!-- TASK MANAGEMENT PAGE -->
-    <div *ngIf="activeContent === 'tasks'">
+    <!-- ===== TASK MANAGEMENT PAGE ===== -->
+    @if (activeContent === 'tasks') {
         <div class="content-card">
             <h2>📋 Task Management</h2>
             <div class="table-responsive">
@@ -417,25 +551,43 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let task of adminTasks">
-                            <td><strong>{{ task.employee?.name || task.employeeName }}</strong></td>
-                            <td>{{ task.title }}</td>
-                            <td><span class="status-badge" [class.status-urgent]="task.priority === 'Urgent'" [class.status-high]="task.priority === 'High'">{{ task.priority }}</span></td>
-                            <td><span class="status-badge" [class.status-pending]="task.status === 'Pending'" [class.status-completed]="task.status === 'Completed'">{{ task.status }}</span></td>
-                            <td>{{ task.dueDate | date:'dd MMM yyyy' }}</td>
-                            <td><button class="btn-modern btn-danger-modern" (click)="deleteTask(task.id)">Delete</button></td>
-                        </tr>
-                        <tr *ngIf="adminTasks.length === 0">
-                            <td colspan="6" class="text-center">No tasks found</td>
+                        @if (adminTasks.length === 0) {
+                            <tr>
+                                <td colspan="6" class="text-center">No tasks found</td>
                             </tr>
+                        }
+                        @for (task of adminTasks; track task.id) {
+                            <tr>
+                                <td><strong>{{ task.employee?.name || task.employeeName }}</strong></td>
+                                <td>{{ task.title }}</td>
+                                <td>
+                                    <span class="status-badge"
+                                          [class.status-urgent]="task.priority === 'Urgent'"
+                                          [class.status-high]="task.priority === 'High'">
+                                        {{ task.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge"
+                                          [class.status-pending]="task.status === 'Pending'"
+                                          [class.status-completed]="task.status === 'Completed'">
+                                        {{ task.status }}
+                                    </span>
+                                </td>
+                                <td>{{ task.dueDate | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                    <button class="btn-modern btn-danger-modern" (click)="deleteTask(task.id)">Delete</button>
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
+    }
 
-    <!-- LEAVE REQUESTS PAGE -->
-    <div *ngIf="activeContent === 'leaverequests'">
+    <!-- ===== LEAVE REQUESTS PAGE ===== -->
+    @if (activeContent === 'leaverequests') {
         <div class="content-card">
             <h2>📅 Leave Requests</h2>
             <div class="table-responsive">
@@ -453,36 +605,42 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let leave of leaveRequests">
-                            <td><strong>{{ leave.employee?.name }}</strong></td>
-                            <td>{{ leave.leaveType }}</td>
-                            <td>{{ leave.startDate | date:'dd MMM' }}</td>
-                            <td>{{ leave.endDate | date:'dd MMM' }}</td>
-                            <td>{{ leave.totalDays }}</td>
-                            <td>{{ leave.reason }}</td>
-                            <td>
-                                <span class="status-badge" [class.status-pending]="leave.status === 'Pending'" [class.status-completed]="leave.status === 'Approved'">
-                                    {{ leave.status }}
-                                </span>
-                            </td>
-                            <td>
-                                <div *ngIf="leave.status === 'Pending'">
-                                    <button class="btn btn-success btn-sm me-1" (click)="approveLeave(leave.id)">Approve</button>
-                                    <button class="btn btn-danger btn-sm" (click)="rejectLeave(leave.id)">Reject</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr *ngIf="leaveRequests.length === 0">
-                            <td colspan="8" class="text-center">No pending leaves</td>
+                        @if (leaveRequests.length === 0) {
+                            <tr>
+                                <td colspan="8" class="text-center">No pending leaves</td>
                             </tr>
+                        }
+                        @for (leave of leaveRequests; track leave.id) {
+                            <tr>
+                                <td><strong>{{ leave.employee?.name }}</strong></td>
+                                <td>{{ leave.leaveType }}</td>
+                                <td>{{ leave.startDate | date:'dd MMM' }}</td>
+                                <td>{{ leave.endDate | date:'dd MMM' }}</td>
+                                <td>{{ leave.totalDays }}</td>
+                                <td>{{ leave.reason }}</td>
+                                <td>
+                                    <span class="status-badge"
+                                          [class.status-pending]="leave.status === 'Pending'"
+                                          [class.status-completed]="leave.status === 'Approved'">
+                                        {{ leave.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (leave.status === 'Pending') {
+                                        <button class="btn btn-success btn-sm me-1" (click)="approveLeave(leave.id)">Approve</button>
+                                        <button class="btn btn-danger btn-sm" (click)="rejectLeave(leave.id)">Reject</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
+    }
 
-    <!-- LEAVE HISTORY PAGE -->
-    <div *ngIf="activeContent === 'leavehistory'">
+    <!-- ===== LEAVE HISTORY PAGE ===== -->
+    @if (activeContent === 'leavehistory') {
         <div class="content-card">
             <h2>📜 Leave History</h2>
             <div class="row mb-3">
@@ -508,29 +666,35 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let leave of leaveHistory">
-                            <td><strong>{{ leave.employee?.name }}</strong></td>
-                            <td>{{ leave.leaveType }}</td>
-                            <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
-                            <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
-                            <td>
-                                <span class="status-badge" [class.status-completed]="leave.status === 'Approved'" [class.status-inactive]="leave.status === 'Rejected'">
-                                    {{ leave.status }}
-                                </span>
-                            </td>
-                            <td>{{ leave.adminRemarks || '-' }}</td>
-                        </tr>
-                        <tr *ngIf="leaveHistory.length === 0">
-                            <td colspan="6" class="text-center">No history found</td>
+                        @if (leaveHistory.length === 0) {
+                            <tr>
+                                <td colspan="6" class="text-center">No history found</td>
                             </tr>
+                        }
+                        @for (leave of leaveHistory; track leave.id) {
+                            <tr>
+                                <td><strong>{{ leave.employee?.name }}</strong></td>
+                                <td>{{ leave.leaveType }}</td>
+                                <td>{{ leave.startDate | date:'dd MMM yyyy' }}</td>
+                                <td>{{ leave.endDate | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                    <span class="status-badge"
+                                          [class.status-completed]="leave.status === 'Approved'"
+                                          [class.status-inactive]="leave.status === 'Rejected'">
+                                        {{ leave.status }}
+                                    </span>
+                                </td>
+                                <td>{{ leave.adminRemarks || '-' }}</td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
+    }
 
-    <!-- ATTENDANCE OVERVIEW PAGE -->
-    <div *ngIf="activeContent === 'attendance'">
+    <!-- ===== ATTENDANCE OVERVIEW PAGE ===== -->
+    @if (activeContent === 'attendance') {
         <div class="content-card">
             <h2>📊 Attendance Overview</h2>
             <div class="row mb-3">
@@ -552,430 +716,235 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let att of allAttendances">
-                            <td><strong>{{ att.employee?.name }}</strong></td>
-                            <td>{{ att.date | date:'dd MMM yyyy' }}</td>
-                            <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
-                            <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
-                            <td><span class="status-badge status-completed">{{ att.status }}</span></td>
-                            <td>{{ att.totalWorkHours || 0 }} hrs</td>
+                        @if (allAttendances.length === 0) {
+                            <tr>
+                                <td colspan="6" class="text-center">No records</td>
                             </tr>
-                        <tr *ngIf="allAttendances.length === 0">
-                            <td colspan="6" class="text-center">No records</td>
+                        }
+                        @for (att of allAttendances; track att.id) {
+                            <tr>
+                                <td><strong>{{ att.employee?.name }}</strong></td>
+                                <td>{{ att.date | date:'dd MMM yyyy' }}</td>
+                                <td>{{ att.checkInTime | date:'hh:mm a' }}</td>
+                                <td>{{ att.checkOutTime | date:'hh:mm a' }}</td>
+                                <td><span class="status-badge status-completed">{{ att.status }}</span></td>
+                                <td>{{ att.totalWorkHours || 0 }} hrs</td>
                             </tr>
+                        }
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
-</div>
+    }
 
-<!-- View Documents Modal -->
-@if (showDocumentsModal) {
-    <div class="modal-overlay" (click)="closeDocumentsModal()">
+</div><!-- end .container -->
+
+
+            <!-- <div class="mt-3 d-flex justify-content-end">
+                <button class="btn btn-secondary" (click)="closeDocumentsModal()">Close</button>
+            </div> -->
+        
+   
+
+
+<!-- ===== EDIT EMPLOYEE MODAL ===== -->
+@if (showEditEmployeeModal) {
+    <div class="modal-overlay" (click)="closeEditEmployeeModal()">
         <div class="modal-box large" (click)="$event.stopPropagation()">
-            <h4 class="mb-3">📄 Employee Documents</h4>
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Document Type</th>
-                            <th>File Name</th>
-                            <th>Uploaded Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let doc of employeeDocuments; let i = index">
-                            <td>{{ doc.documentType }}</td>
-                            <td>{{ doc.documentName }}</td>
-                            <td>{{ doc.uploadedDate | date:'dd MMM yyyy' }}</td>
-                            <td>
-                                <a [href]="apiUrl + doc.documentPath" target="_blank" class="btn btn-info btn-sm me-1">View</a>
-                                <button class="btn btn-danger btn-sm" (click)="deleteDocument(doc.id, i)">Delete</button>
-                            </td>
-                        </tr>
-                        <tr *ngIf="employeeDocuments.length === 0">
-                            <td colspan="4" class="text-center">No documents found</td>
-                            </tr>
-                    </tbody>
-                </table>
+            <h4 class="mb-4">✏️ Edit Employee</h4>
+
+            @if (editEmployeeError) {
+                <div class="alert alert-danger">{{ editEmployeeError }}</div>
+            }
+            @if (editEmployeeSuccess) {
+                <div class="alert alert-success">{{ editEmployeeSuccess }}</div>
+            }
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" class="form-control" [(ngModel)]="editEmployeeData.name"/>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Email *</label>
+                    <input type="email" class="form-control" [(ngModel)]="editEmployeeData.email" readonly disabled/>
+                    <small class="text-muted">Email cannot be changed</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text" class="form-control" [(ngModel)]="editEmployeeData.phone"/>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Department *</label>
+                    <select class="form-select" [(ngModel)]="editEmployeeData.departmentId">
+                        <option value="">Select Department</option>
+                        @for (d of departments; track d.id) {
+                            <option [value]="d.id">{{ d.name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Designation *</label>
+                    <select class="form-select" [(ngModel)]="editEmployeeData.designation">
+                        <option value="">Select Designation</option>
+                        <option value="Software Engineer">Software Engineer</option>
+                        <option value="Senior Software Engineer">Senior Software Engineer</option>
+                        <option value="Team Lead">Team Lead</option>
+                        <option value="Project Manager">Project Manager</option>
+                        <option value="HR Manager">HR Manager</option>
+                        <option value="Accountant">Accountant</option>
+                        <option value="Marketing Executive">Marketing Executive</option>
+                        <option value="Sales Executive">Sales Executive</option>
+                        <option value="UI/UX Designer">UI/UX Designer</option>
+                        <option value="QA Engineer">QA Engineer</option>
+                        <option value="DevOps Engineer">DevOps Engineer</option>
+                        <option value="System Administrator">System Administrator</option>
+                        <option value="Business Analyst">Business Analyst</option>
+                        <option value="Product Manager">Product Manager</option>
+                        <option value="Intern">Intern</option>
+                        <option value="Junior Developer">Junior Developer</option>
+                        <option value="Senior Developer">Senior Developer</option>
+                        <option value="Technical Lead">Technical Lead</option>
+                        <option value="Architect">Architect</option>
+                        <option value="CTO">CTO</option>
+                        <option value="CEO">CEO</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Salary *</label>
+                    <input type="number" class="form-control" [(ngModel)]="editEmployeeData.salary"/>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Joining Date</label>
+                    <input type="date" class="form-control" [(ngModel)]="editEmployeeData.joiningDate"/>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Address *</label>
+                    <textarea class="form-control" rows="2" [(ngModel)]="editEmployeeData.address"></textarea>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Profile Photo</label>
+                    <input type="file" class="form-control" accept="image/*" (change)="onEditPhotoSelected($event)"/>
+                    <small class="text-muted">Leave empty to keep current photo</small>
+                </div>
+                @if (editPhotoPreview || editEmployeeData.photo) {
+                    <div class="col-md-12 text-center">
+                        <img [src]="editPhotoPreview || (apiUrl + editEmployeeData.photo)" class="preview-img" alt="Preview"/>
+                    </div>
+                }
             </div>
-            <button class="btn btn-secondary w-100 mt-3" (click)="closeDocumentsModal()">Close</button>
+
+            <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-success flex-grow-1" (click)="updateEmployee()" [disabled]="editEmployeeSaving">
+                    {{ editEmployeeSaving ? 'Saving...' : 'Save Changes' }}
+                </button>
+                <button class="btn btn-secondary flex-grow-1" (click)="closeEditEmployeeModal()">Cancel</button>
+            </div>
         </div>
     </div>
 }
 
-<!-- Modals -->
+<!-- ===== ASSIGN TASK MODAL ===== -->
 @if (showTaskModal) {
     <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Assign Task</h4>
-            <div class="alert alert-danger" *ngIf="taskError">{{ taskError }}</div>
-            <div class="mb-3"><label>Employee</label><select class="form-select" [(ngModel)]="newTask.employeeId"><option value="">Select</option><option *ngFor="let emp of employees" [value]="emp.id">{{ emp.name }}</option></select></div>
-            <div class="mb-3"><label>Title</label><input type="text" class="form-control" [(ngModel)]="newTask.title"/></div>
-            <div class="mb-3"><label>Description</label><textarea class="form-control" rows="2" [(ngModel)]="newTask.description"></textarea></div>
-            <div class="mb-3"><label>Priority</label><select class="form-select" [(ngModel)]="newTask.priority"><option>Low</option><option>Medium</option><option>High</option><option>Urgent</option></select></div>
-            <div class="mb-3"><label>Due Date</label><input type="date" class="form-control" [(ngModel)]="newTask.dueDate"/></div>
-            <button class="btn btn-success w-100" (click)="assignTask()" [disabled]="assigning">{{ assigning ? 'Assigning...' : 'Assign' }}</button>
+            @if (taskError) {
+                <div class="alert alert-danger">{{ taskError }}</div>
+            }
+            <div class="mb-3">
+                <label>Employee</label>
+                <select class="form-select" [(ngModel)]="newTask.employeeId">
+                    <option value="">Select</option>
+                    @for (emp of employees; track emp.id) {
+                        <option [value]="emp.id">{{ emp.name }}</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Title</label>
+                <input type="text" class="form-control" [(ngModel)]="newTask.title"/>
+            </div>
+            <div class="mb-3">
+                <label>Description</label>
+                <textarea class="form-control" rows="2" [(ngModel)]="newTask.description"></textarea>
+            </div>
+            <div class="mb-3">
+                <label>Priority</label>
+                <select class="form-select" [(ngModel)]="newTask.priority">
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                    <option>Urgent</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Due Date</label>
+                <input type="date" class="form-control" [(ngModel)]="newTask.dueDate"/>
+            </div>
+            <button class="btn btn-success w-100" (click)="assignTask()" [disabled]="assigning">
+                {{ assigning ? 'Assigning...' : 'Assign' }}
+            </button>
             <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
         </div>
     </div>
 }
 
+<!-- ===== EDIT PROFILE MODAL ===== -->
 @if (showEditProfile) {
     <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Edit Profile</h4>
-            <div class="alert alert-danger" *ngIf="editErrorMessage">{{ editErrorMessage }}</div>
-            <div class="alert alert-success" *ngIf="editSuccessMessage">{{ editSuccessMessage }}</div>
-            <div class="mb-3"><label>Full Name</label><input type="text" class="form-control" [(ngModel)]="editFullName"/></div>
-            <div class="mb-3"><label>Profile Image</label><input type="file" class="form-control" accept="image/*" (change)="onImageSelected($event)"/></div>
-            @if (imagePreview) { <div class="text-center mb-3"><img [src]="imagePreview" class="preview-img" alt="Preview"/></div> }
-            <button class="btn btn-primary w-100" (click)="updateProfile()" [disabled]="updating">{{ updating ? 'Updating...' : 'Update Profile' }}</button>
+            @if (editErrorMessage) {
+                <div class="alert alert-danger">{{ editErrorMessage }}</div>
+            }
+            @if (editSuccessMessage) {
+                <div class="alert alert-success">{{ editSuccessMessage }}</div>
+            }
+            <div class="mb-3">
+                <label>Full Name</label>
+                <input type="text" class="form-control" [(ngModel)]="editFullName"/>
+            </div>
+            <div class="mb-3">
+                <label>Profile Image</label>
+                <input type="file" class="form-control" accept="image/*" (change)="onImageSelected($event)"/>
+            </div>
+            @if (imagePreview) {
+                <div class="text-center mb-3">
+                    <img [src]="imagePreview" class="preview-img" alt="Preview"/>
+                </div>
+            }
+            <button class="btn btn-primary w-100" (click)="updateProfile()" [disabled]="updating">
+                {{ updating ? 'Updating...' : 'Update Profile' }}
+            </button>
             <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
         </div>
     </div>
 }
 
+<!-- ===== CHANGE PASSWORD MODAL ===== -->
 @if (showChangePassword) {
     <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Change Password</h4>
-            <div class="alert alert-danger" *ngIf="editErrorMessage">{{ editErrorMessage }}</div>
-            <div class="alert alert-success" *ngIf="editSuccessMessage">{{ editSuccessMessage }}</div>
-            <div class="mb-3"><label>New Password</label><input type="password" class="form-control" [(ngModel)]="newPassword"/></div>
-            <div class="mb-3"><label>Confirm Password</label><input type="password" class="form-control" [(ngModel)]="confirmNewPassword"/></div>
-            <button class="btn btn-warning w-100" (click)="changePassword()" [disabled]="updating">{{ updating ? 'Changing...' : 'Change Password' }}</button>
+            @if (editErrorMessage) {
+                <div class="alert alert-danger">{{ editErrorMessage }}</div>
+            }
+            @if (editSuccessMessage) {
+                <div class="alert alert-success">{{ editSuccessMessage }}</div>
+            }
+            <div class="mb-3">
+                <label>New Password</label>
+                <input type="password" class="form-control" [(ngModel)]="newPassword"/>
+            </div>
+            <div class="mb-3">
+                <label>Confirm Password</label>
+                <input type="password" class="form-control" [(ngModel)]="confirmNewPassword"/>
+            </div>
+            <button class="btn btn-warning w-100" (click)="changePassword()" [disabled]="updating">
+                {{ updating ? 'Changing...' : 'Change Password' }}
+            </button>
             <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
         </div>
     </div>
 }
-
-<style>
-    /* ===== MODERN DASHBOARD CSS ===== */
-    .dashboard-header {
-        margin-bottom: 32px;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-    }
-    .header-content h1 {
-        margin: 0 0 8px 0;
-        color: #1e293b;
-        font-size: 28px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-    .header-content p {
-        margin: 0;
-        color: #64748b;
-        font-size: 16px;
-    }
-
-    /* Welcome Card */
-    .welcome-section { margin-bottom: 32px; }
-    .welcome-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
-        padding: 40px;
-        color: white;
-        display: flex;
-        align-items: center;
-        gap: 32px;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    }
-    .welcome-avatar {
-        width: 100px; height: 100px; border-radius: 50%;
-        background: rgba(255,255,255,0.2);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 40px; font-weight: 700;
-        border: 3px solid rgba(255,255,255,0.3); flex-shrink: 0;
-        overflow: hidden;
-    }
-    .welcome-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .welcome-text h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-    .welcome-text p { font-size: 16px; opacity: 0.9; margin: 0; }
-
-    /* Stats Grid */
-    .cards-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 24px;
-        margin-bottom: 32px;
-    }
-    .dashboard-card {
-        border-radius: 20px;
-        padding: 24px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        background: #ffffff;
-        position: relative;
-        overflow: hidden;
-        cursor: pointer;
-    }
-    .dashboard-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; height: 4px;
-        background: linear-gradient(90deg, var(--card-color) 0%, var(--card-color-light) 100%);
-        opacity: 0.6;
-    }
-    .dashboard-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-    .card-header-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 20px;
-    }
-    .stat-icon-wrapper {
-        width: 56px; height: 56px; border-radius: 16px;
-        display: flex; justify-content: center; align-items: center;
-        background-color: var(--icon-bg); color: var(--card-color);
-        font-size: 28px;
-    }
-    .trend-badge {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 4px 10px; border-radius: 20px;
-        font-size: 12px; font-weight: 600;
-        background: var(--trend-bg); color: var(--trend-color);
-    }
-    .stat-value { margin: 0; font-size: 36px; font-weight: 700; color: #1e293b; line-height: 1.2; }
-    .stat-title { font-size: 15px; font-weight: 600; color: #64748b; margin-top: 8px; }
-    .stat-subtitle { font-size: 13px; font-weight: 500; margin-top: 4px; color: var(--card-color); }
-
-    /* Card Colors */
-    .card-blue { --card-color: #3b82f6; --card-color-light: #93c5fd; --icon-bg: rgba(59,130,246,0.12); --trend-bg: rgba(59,130,246,0.1); --trend-color: #3b82f6; }
-    .card-green { --card-color: #10b981; --card-color-light: #6ee7b7; --icon-bg: rgba(16,185,129,0.12); --trend-bg: rgba(16,185,129,0.1); --trend-color: #10b981; }
-    .card-purple { --card-color: #8b5cf6; --card-color-light: #c4b5fd; --icon-bg: rgba(139,92,246,0.12); --trend-bg: rgba(139,92,246,0.1); --trend-color: #8b5cf6; }
-    .card-orange { --card-color: #f59e0b; --card-color-light: #fcd34d; --icon-bg: rgba(245,158,11,0.12); --trend-bg: rgba(245,158,11,0.1); --trend-color: #f59e0b; }
-
-    /* Content Card */
-    .content-card {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f1f5f9;
-        margin-bottom: 24px;
-    }
-    .content-card h2 {
-        font-size: 20px;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 20px;
-    }
-
-    /* Modern Table */
-    .modern-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .modern-table th {
-        background: #f8fafc;
-        color: #64748b;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 14px 16px;
-        text-align: left;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    .modern-table td {
-        padding: 14px 16px;
-        color: #334155;
-        font-size: 14px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .modern-table tr:hover td {
-        background: #f8fafc;
-    }
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    .status-active { background: #dcfce7; color: #166534; }
-    .status-inactive { background: #fee2e2; color: #991b1b; }
-    .status-pending { background: #fef3c7; color: #92400e; }
-    .status-completed { background: #dcfce7; color: #166534; }
-    .status-urgent { background: #fee2e2; color: #991b1b; }
-    .status-high { background: #ffedd5; color: #9a3412; }
-
-    .btn-modern {
-        padding: 8px 16px;
-        border-radius: 8px;
-        border: none;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .btn-danger-modern {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-    .btn-danger-modern:hover {
-        background: #fecaca;
-    }
-
-    /* Animations */
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .dashboard-card {
-        animation: fadeInUp 0.5s ease forwards;
-    }
-    .dashboard-card:nth-child(1) { animation-delay: 0.1s; }
-    .dashboard-card:nth-child(2) { animation-delay: 0.2s; }
-    .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
-    .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
-
-    /* ===== EXISTING SIDEBAR & NAVBAR STYLES ===== */
-    .sidebar-menu { padding: 12px 0; }
-    .sidebar-section-title { 
-        padding: 12px 22px; 
-        font-size: 13px; 
-        font-weight: 600; 
-        color: #555; 
-        text-transform: uppercase; 
-        letter-spacing: 0.5px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background 0.2s;
-    }
-    .sidebar-section-title:hover { background: #f0f0f8; }
-    .section-arrow { font-size: 11px; color: #999; }
-    .sidebar-submenu { padding-left: 35px; background: #fafafa; }
-    .sidebar-subitem {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 20px;
-        cursor: pointer;
-        font-size: 13px;
-        color: #555;
-        transition: all 0.2s;
-        border-left: 2px solid transparent;
-    }
-    .sidebar-subitem.active {
-        background: #eeeef8;
-        color: #1a1a2e;
-        font-weight: 700;
-        border-left-color: #1a1a2e !important;
-    }
-    .sidebar-subitem:hover { background: #f0f0f8; color: #1a1a2e; border-left-color: #1a1a2e; }
-    .sidebar-icon { font-size: 16px; width: 24px; text-align: center; }
-    .sidebar-label { flex: 1; }
-    .badge.bg-danger { font-size: 10px; padding: 2px 6px; margin-left: 5px; }
-    
-    /* Modal */
-    .modal-overlay { 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
-        background: rgba(0,0,0,0.5); 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        z-index: 2000; 
-    }
-    .modal-box { 
-        background: white; 
-        border-radius: 15px; 
-        padding: 25px; 
-        width: 450px; 
-        max-width: 90%;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    .modal-box.large { width: 700px; max-width: 90%; }
-    
-    .preview-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #1a1a2e; }
-    
-    /* Sidebar */
-    .sidebar { 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        height: 100%; 
-        width: 280px; 
-        background: white; 
-        box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
-        z-index: 1200; 
-        transform: translateX(-100%); 
-        transition: transform 0.3s; 
-    }
-    .sidebar.sidebar-open { transform: translateX(0); }
-    .sidebar-header { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        padding: 18px 20px; 
-        background: #1a1a2e; 
-        color: white; 
-    }
-    .sidebar-close-btn { 
-        background: rgba(255,255,255,0.2); 
-        border: none; 
-        color: white; 
-        width: 28px; 
-        height: 28px; 
-        border-radius: 6px; 
-        cursor: pointer; 
-    }
-    .sidebar-overlay, .click-outside-overlay { 
-        position: fixed; 
-        inset: 0; 
-        background: rgba(0,0,0,0.3); 
-        z-index: 1100; 
-    }
-    
-    /* Navbar */
-    .profile-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
-    .profile-placeholder { 
-        width: 42px; height: 42px; border-radius: 50%; 
-        background: white; color: #1a1a2e; 
-        display: flex; align-items: center; justify-content: center; 
-        font-weight: bold; 
-    }
-    .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important; padding: 10px 20px; }
-    .profile-menu { 
-        position: absolute; top: 60px; right: 20px; 
-        background: white; border-radius: 12px; 
-        box-shadow: 0 8px 30px rgba(0,0,0,0.15); 
-        min-width: 220px; z-index: 1500; overflow: hidden; 
-    }
-    .menu-toggle-btn { 
-        background: rgba(255,255,255,0.15); 
-        border: none; border-radius: 6px; 
-        padding: 8px 10px; cursor: pointer; 
-        display: flex; flex-direction: column; gap: 5px; 
-        margin-right: 12px; 
-    }
-    .menu-bar { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; }
-    .inactive-row { background: #fff5f5 !important; opacity: 0.8; }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .cards-grid { grid-template-columns: 1fr; }
-        .dashboard-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-        .welcome-card { flex-direction: column; text-align: center; padding: 24px; }
-        .welcome-avatar { width: 80px; height: 80px; font-size: 32px; }
-        .modal-box.large { width: 95%; }
-    }
-</style>

@@ -1,0 +1,126 @@
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar navbar-expand-sm navbar-dark">
+    <div class="container-fluid">
+        <button class="menu-toggle-btn" (click)="toggleSidebar(); $event.stopPropagation()">
+            <span class="menu-bar"></span>
+            <span class="menu-bar"></span>
+            <span class="menu-bar"></span>
+        </button>
+        <a class="navbar-brand" (click)="goBack()" style="cursor: pointer;">HRMApp - Admin Panel</a>
+        <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
+            <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
+                <img *ngIf="profileImage" [src]="apiUrl + profileImage" class="profile-img" alt="Profile"/>
+                <div *ngIf="!profileImage" class="profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
+            </div>
+            <div *ngIf="showMenu" class="profile-menu" (click)="$event.stopPropagation()">
+                <div class="profile-menu-header">
+                    <img *ngIf="profileImage" [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
+                    <div *ngIf="!profileImage" class="menu-profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
+                    <div>
+                        <p class="menu-name">{{ fullName }}</p>
+                        <p class="menu-email">{{ email }}</p>
+                    </div>
+                </div>
+                <hr class="menu-divider"/>
+                <div class="menu-item text-danger" (click)="logout()">🚪 Logout</div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Click-outside overlays -->
+<div *ngIf="showMenu" class="click-outside-overlay" (click)="showMenu = false"></div>
+<div *ngIf="showSidebar" class="sidebar-overlay" (click)="showSidebar = false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar" [class.sidebar-open]="showSidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">📋 Menu</span>
+        <button class="sidebar-close-btn" (click)="showSidebar = false">✕</button>
+    </div>
+    <div class="sidebar-menu">
+        <div class="sidebar-item" (click)="goBack()">
+            <span class="sidebar-icon">←</span>
+            <span class="sidebar-label">Back to Admin Panel</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container mt-4">
+    <!-- Employee Details Section -->
+    <div class="employee-details-card" *ngIf="employeeDetails">
+        <div class="details-header">
+            <h2>👤 Employee Information</h2>
+        </div>
+        <div class="details-grid">
+            <div class="detail-item"><span class="detail-label">Full Name:</span><span class="detail-value">{{ employeeDetails.name }}</span></div>
+            <div class="detail-item"><span class="detail-label">Email:</span><span class="detail-value">{{ employeeDetails.email }}</span></div>
+            <div class="detail-item"><span class="detail-label">Phone:</span><span class="detail-value">{{ employeeDetails.phone || 'N/A' }}</span></div>
+            <div class="detail-item"><span class="detail-label">Department:</span><span class="detail-value">{{ employeeDetails.departmentName }}</span></div>
+            <div class="detail-item"><span class="detail-label">Designation:</span><span class="detail-value">{{ employeeDetails.designation }}</span></div>
+            <div class="detail-item"><span class="detail-label">Salary:</span><span class="detail-value">${{ formatSalary(employeeDetails.salary) }}</span></div>
+            <div class="detail-item"><span class="detail-label">Joining Date:</span><span class="detail-value">{{ formatDate(employeeDetails.joiningDate) }}</span></div>
+            <div class="detail-item"><span class="detail-label">Address:</span><span class="detail-value">{{ employeeDetails.address || 'N/A' }}</span></div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="image-viewer-modal" *ngIf="showImageViewer" (click)="closeImageViewer()">
+        <div class="image-viewer-content" (click)="$event.stopPropagation()">
+            <button class="close-viewer" (click)="closeImageViewer()">✕</button>
+            <button class="nav-btn prev-btn" (click)="previousImage()" *ngIf="imageDocuments.length > 1">❮</button>
+            <div class="image-container">
+                <img [src]="currentImageUrl" alt="Document Image" (error)="onImageError($event)"/>
+                <div class="image-info" *ngIf="currentImageDoc">
+                    <p><strong>{{ currentImageDoc.documentType }}</strong> - {{ currentImageDoc.documentName }}</p>
+                    <p class="image-counter">{{ currentImageIndex + 1 }} of {{ imageDocuments.length }}</p>
+                </div>
+            </div>
+            <button class="nav-btn next-btn" (click)="nextImage()" *ngIf="imageDocuments.length > 1">❯</button>
+        </div>
+    </div>
+
+    <!-- Documents Section Header -->
+    <div class="documents-header">
+        <div>
+            <h2>📄 Employee Documents</h2>
+            <span *ngIf="documents.length > 0" class="badge-count">{{ documents.length }} Total Documents</span>
+        </div>
+        <button class="btn-back" (click)="goBack()">← Back to Employee List</button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Loading documents...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!loading && error" class="alert alert-danger">
+        <strong>Error:</strong> {{ error }}
+        <button class="btn-retry" (click)="loadDocuments()">Retry</button>
+    </div>
+
+    <!-- Documents Grid -->
+    <div *ngIf="!loading && !error" class="content-card">
+        <div class="documents-grid">
+            <div *ngFor="let doc of documents; let i = index" class="document-card" (click)="openImageViewer(i)">
+                <div class="document-preview">
+                    <div class="preview-icon">📄</div>
+                    <img *ngIf="isImageFile(doc.documentName)" [src]="apiUrl + doc.documentPath" class="preview-image" (error)="onImageError($event)"/>
+                </div>
+                <div class="document-info">
+                    <span class="doc-type-badge" [ngClass]="getBadgeClass(doc.documentType)">{{ doc.documentType }}</span>
+                    <p class="doc-name">{{ doc.documentName }}</p>
+                    <p class="doc-date">{{ formatDate(doc.uploadedDate) }}</p>
+                    <p class="doc-size">{{ formatFileSize(doc.fileSize) }}</p>
+                    <div class="doc-actions">
+                        <a [href]="apiUrl + doc.documentPath" [download]="doc.documentName" class="btn-download-sm" (click)="$event.stopPropagation()">⬇️ Download</a>
+                        <button class="btn-delete-sm" (click)="deleteDocument(doc.id, $event)">🗑️ Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
