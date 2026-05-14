@@ -1,4 +1,4 @@
-import { Component, OnInit, PLATFORM_ID, Inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, Inject, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router'; // Add ActivatedRoute
@@ -28,8 +28,19 @@ export class AdminComponent implements OnInit {
     empSaving: boolean = false;
     departments: any[] = [];
     newEmployee: any = {
-        name: '', email: '', phone: '', address: '', designation: '', salary: 0,
-        departmentId: '', joiningDate: new Date().toISOString().split('T')[0], temporaryPassword: ''
+        name: '', 
+        email: '', 
+        phone: '', 
+        address: '', 
+        designation: '', 
+        salary: 0,
+        departmentId: '',
+        joiningDate: new Date().toISOString().split('T')[0], 
+        temporaryPassword:"",
+        gender: '',   
+        dateOfBirth: '',   
+        education:  '',
+        instituteName: ''
     };
 
     // Edit Employee Properties
@@ -44,7 +55,10 @@ editEmployeeData: any = {
     salary: 0,
     departmentId: '',
     joiningDate: '',
-    photo: ''
+    photo: '',
+    gender: '',       
+    dateOfBirth: '',   
+    education: ''  
 };
 editSelectedPhoto: File | null = null;
 editPhotoPreview: string | null = null;
@@ -102,7 +116,7 @@ selectedEmployeeName: string = '';
     // Content Management
     activeContent: string = '';
     showHomePage: boolean = true;
-
+    private lastActiveSection: string = 'management';
     // Task Management
     adminTasks: any[] = [];
     showTaskModal: boolean = false;
@@ -133,6 +147,11 @@ selectedEmployeeName: string = '';
     // Employees list for task assignment
     employees: any[] = [];
 
+    // Edit Employee Document Properties
+editEmployeeDocuments: any[] = [];
+editDocumentFields: any[] = [];
+editUploadingDocuments: boolean = false;
+
     // Collapsible Sidebar Sections
     expandedSections: any = {
         management: false,
@@ -153,6 +172,7 @@ formatFileSize(bytes: number): string {
 
     constructor(
         private router: Router,
+        private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         @Inject(PLATFORM_ID) private platformId: Object
     ) {}
@@ -178,20 +198,7 @@ formatFileSize(bytes: number): string {
     this.profileImage = localStorage.getItem('profileImage') || null;
     this.editFullName = this.fullName;
 
-    // Check if we need to return to employees page
-    const returnToEmployees = localStorage.getItem('returnToEmployees');
-    if (returnToEmployees === 'true') {
-        // Clear the flag
-        localStorage.removeItem('returnToEmployees');
-        // Show employee list instead of home page
-        this.showHomePage = false;
-        this.activeContent = 'employees';
-        this.resetEmployeeFilters(); // Load employees with pagination
-    } else {
-        this.showHomePage = true;
-        this.activeContent = '';
-    }
-
+    // Load all data
     this.loadUsers();
     this.loadEmployees();
     this.loadDepartments();
@@ -199,6 +206,237 @@ formatFileSize(bytes: number): string {
     this.loadAllAttendance();
     this.loadPendingLeaves();
     this.loadLeaveHistory();
+
+    
+    // Get current URL after a short delay to ensure data is loaded
+    setTimeout(() => {
+        this.handleRoute();
+    }, 100);
+}
+
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    // Close menu only if click is outside the profile-wrapper
+    if (!target.closest('.profile-wrapper') && !target.closest('.profile-menu')) {
+        if (this.showMenu) {
+            this.showMenu = false;
+            this.cdr.detectChanges();
+        }
+    }
+}
+
+// Load employee documents when editing
+loadEmployeeDocumentsForEdit(employeeId: number) {
+    const token = localStorage.getItem('token');
+    
+    fetch(`https://localhost:7141/api/employees/${employeeId}/documents`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(response => response.json())
+    .then(data => {
+        this.editEmployeeDocuments = Array.isArray(data) ? data : [];
+        this.cdr.detectChanges();
+    })
+    .catch(error => {
+        console.error('Error loading documents:', error);
+        this.editEmployeeDocuments = [];
+    });
+}
+
+formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (e) {
+        return dateString;
+    }
+}
+
+// Add document field for edit modal
+addEditDocumentField() {
+    this.editDocumentFields.push({ documentType: '', file: null, fileError: '' });
+    this.cdr.detectChanges();
+}
+
+// Remove document field from edit modal
+removeEditDocumentField(index: number) {
+    this.editDocumentFields.splice(index, 1);
+    this.cdr.detectChanges();
+}
+
+// Handle document selection in edit modal
+onEditDocumentSelected(event: any, index: number) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        this.editDocumentFields[index].fileError = 'File size must be less than 5MB';
+        this.editDocumentFields[index].file = null;
+        return;
+    }
+
+    const allowedTypes = [
+        'image/jpeg', 'image/jpg', 'image/png',
+        'application/pdf', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (!allowedTypes.includes(file.type)) {
+        this.editDocumentFields[index].fileError = 'Invalid file type. Allowed: JPG, PNG, PDF, DOC';
+        this.editDocumentFields[index].file = null;
+        return;
+    }
+
+    this.editDocumentFields[index].file = file;
+    this.editDocumentFields[index].fileError = '';
+}
+
+// Remove existing document from edit modal
+removeEditDocument(docId: number, index: number) {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+    
+    const token = localStorage.getItem('token');
+    
+    fetch(`https://localhost:7141/api/employees/documents/${docId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(response => response.json())
+    .then(() => {
+        this.editEmployeeDocuments.splice(index, 1);
+        this.cdr.detectChanges();
+        alert('Document deleted successfully');
+    })
+    .catch(error => {
+        console.error('Error deleting document:', error);
+        alert('Failed to delete document');
+    });
+}
+
+// Upload documents for edit
+uploadEditDocuments(employeeId: number): Promise<any> {
+    if (this.editDocumentFields.length === 0) return Promise.resolve();
+
+    const formData = new FormData();
+    const documentTypes: string[] = [];
+
+    for (const doc of this.editDocumentFields) {
+        if (doc.file && doc.documentType) {
+            formData.append('documents', doc.file);
+            documentTypes.push(doc.documentType);
+        }
+    }
+
+    if (formData.getAll('documents').length === 0) return Promise.resolve();
+
+    documentTypes.forEach(type => formData.append('documentTypes', type));
+
+    const token = localStorage.getItem('token');
+
+    return fetch(`https://localhost:7141/api/employees/${employeeId}/documents`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.documents) {
+            this.editEmployeeDocuments = [...this.editEmployeeDocuments, ...data.documents];
+        }
+        this.editDocumentFields = [];
+        return data;
+    })
+    .catch(error => {
+        console.error('Error uploading documents:', error);
+        return Promise.reject(error);
+    });
+}
+
+// Add this new method to handle routing
+handleRoute() {
+    const currentUrl = this.router.url;
+    console.log('Current URL:', currentUrl);
+    
+    if (currentUrl.includes('/admin/employeelist')) {
+        this.showHomePage = false;
+        this.activeContent = 'employees';
+        this.activeMenu = 'employees';
+        this.resetEmployeeFilters();
+        this.expandedSections['management'] = true;
+        this.lastActiveSection = 'management';
+    } 
+    else if (currentUrl.includes('/admin/createemployee')) {
+        this.showHomePage = false;
+        this.activeContent = 'createemployee';
+        this.activeMenu = 'createemployee';
+        this.resetNewEmployeeForm();
+        this.expandedSections['management'] = true;
+        this.lastActiveSection = 'management';
+    }
+    else if (currentUrl.includes('/admin/tasks')) {
+        this.showHomePage = false;
+        this.activeContent = 'tasks';
+        this.activeMenu = 'tasks';
+        this.loadAdminTasks();
+        this.expandedSections['tasks'] = true;
+        this.lastActiveSection = 'tasks';
+    }
+    else if (currentUrl.includes('/admin/leaverequests')) {
+        this.showHomePage = false;
+        this.activeContent = 'leaverequests';
+        this.activeMenu = 'leaverequests';
+        this.loadPendingLeaves();
+        this.expandedSections['leaves'] = true;
+        this.lastActiveSection = 'leaves';
+    }
+    else if (currentUrl.includes('/admin/leavehistory')) {
+        this.showHomePage = false;
+        this.activeContent = 'leavehistory';
+        this.activeMenu = 'leavehistory';
+        this.loadLeaveHistory();
+        this.expandedSections['leaves'] = true;
+        this.lastActiveSection = 'leaves';
+    }
+    else if (currentUrl.includes('/admin/attendance')) {
+        this.showHomePage = false;
+        this.activeContent = 'attendance';
+        this.activeMenu = 'attendance';
+        this.loadAllAttendance();
+        this.expandedSections['attendance'] = true;
+        this.lastActiveSection = 'attendance';
+    }
+    else {
+        // Check for return flag from documents page
+        const returnToEmployees = localStorage.getItem('returnToEmployees');
+        if (returnToEmployees === 'true') {
+            localStorage.removeItem('returnToEmployees');
+            this.showHomePage = false;
+            this.activeContent = 'employees';
+            this.activeMenu = 'employees';
+            this.resetEmployeeFilters();
+            this.expandedSections['management'] = true;
+            this.lastActiveSection = 'management';
+            // Update URL to match
+            this.router.navigate(['/admin/employeelist'], { replaceUrl: true });
+        } else {
+            this.showHomePage = true;
+            this.activeContent = '';
+            this.activeMenu = '';
+        }
+    }
+    
+    this.cdr.detectChanges();
 }
 
     
@@ -213,40 +451,48 @@ formatFileSize(bytes: number): string {
     }
 
     goToHome() {
-        this.showHomePage = true;
-        this.activeContent = '';
-        this.showSidebar = false;
-        this.cdr.detectChanges();
-    }
+    localStorage.removeItem('returnToEmployees');
+    this.router.navigate(['/admin']);
+}
 
     onMenuClick(menuItem: string) {
     console.log('Menu clicked:', menuItem);
-    this.showHomePage = false;
-    this.activeContent = menuItem;
     this.showSidebar = false;
     
+    // Keep the parent section expanded based on the menu item
     switch(menuItem) {
         case 'employees':
-            this.resetEmployeeFilters(); // This will load with pagination
+            this.expandedSections['management'] = true;
+            this.lastActiveSection = 'management';
+            this.router.navigate(['/admin/employeelist']);
             break;
         case 'createemployee':
-            this.resetNewEmployeeForm();
+            this.expandedSections['management'] = true;
+            this.lastActiveSection = 'management';
+            this.router.navigate(['/admin/createemployee']);  // FIXED: was going to employeelist
             break;
         case 'tasks':
-            this.loadAdminTasks();
+            this.expandedSections['tasks'] = true;
+            this.lastActiveSection = 'tasks';
+            this.router.navigate(['/admin/tasks']);
             break;
         case 'leaverequests':
-            this.loadPendingLeaves();
+            this.expandedSections['leaves'] = true;
+            this.lastActiveSection = 'leaves';
+            this.router.navigate(['/admin/leaverequests']);
             break;
         case 'leavehistory':
-            this.loadLeaveHistory();
+            this.expandedSections['leaves'] = true;
+            this.lastActiveSection = 'leaves';
+            this.router.navigate(['/admin/leavehistory']);
             break;
         case 'attendance':
-            this.loadAllAttendance();
+            this.expandedSections['attendance'] = true;
+            this.lastActiveSection = 'attendance';
+            this.router.navigate(['/admin/attendance']);
             break;
     }
 }
-
     toggleSection(section: string) {
         this.expandedSections[section] = !this.expandedSections[section];
         this.cdr.detectChanges();
@@ -363,9 +609,21 @@ getEmployeePages(): number[] {
 
     resetNewEmployeeForm() {
         this.newEmployee = {
-            name: '', email: '', phone: '', address: '', designation: '', salary: 0,
-            departmentId: '', joiningDate: new Date().toISOString().split('T')[0], temporaryPassword: ''
-        };
+            name: '', 
+            email: '', 
+            phone: '', 
+            address: '', 
+            designation: '', 
+            salary: 0,
+            departmentId: '', 
+            joiningDate: new Date().toISOString().split('T')[0], 
+            temporaryPassword: '', 
+            gender: '',      
+            dateOfBirth: '',   
+            education: '' ,
+            instituteName: '' 
+             };
+
         this.empError = '';
         this.empSuccess = '';
         this.employeeDocuments = [];
@@ -557,13 +815,21 @@ openEditEmployeeModal(emp: any) {
         salary: emp.salary,
         departmentId: emp.departmentId,
         joiningDate: new Date(emp.joiningDate).toISOString().split('T')[0],
-        photo: emp.photo || ''
+        photo: emp.photo || '',
+        gender: emp.gender || '',        // NEW
+        dateOfBirth: emp.dateOfBirth ? new Date(emp.dateOfBirth).toISOString().split('T')[0] : '',   // NEW
+        education: emp.education || ''   // NEW
     };
     this.editSelectedPhoto = null;
     this.editPhotoPreview = null;
     this.editEmployeeError = '';
     this.editEmployeeSuccess = '';
+    this.editDocumentFields = [];
     this.showEditEmployeeModal = true;
+    
+    // Load existing documents
+    this.loadEmployeeDocumentsForEdit(emp.id);
+    
     this.cdr.detectChanges();
 }
 
@@ -586,9 +852,10 @@ closeEditEmployeeModal() {
     this.editPhotoPreview = null;
     this.editEmployeeError = '';
     this.editEmployeeSuccess = '';
+    this.editEmployeeDocuments = [];
+    this.editDocumentFields = [];
     this.cdr.detectChanges();
 }
-
 // On Photo Selected for Edit
 onEditPhotoSelected(event: any) {
     const file = event.target.files[0];
@@ -641,6 +908,9 @@ updateEmployee() {
     formData.append('salary', this.editEmployeeData.salary.toString());
     formData.append('departmentId', this.editEmployeeData.departmentId.toString());
     formData.append('joiningDate', this.editEmployeeData.joiningDate);
+    formData.append('gender', this.editEmployeeData.gender);
+    formData.append('dateOfBirth', this.editEmployeeData.dateOfBirth);
+    formData.append('education', this.editEmployeeData.education);
     
     if (this.editSelectedPhoto) {
         formData.append('photo', this.editSelectedPhoto);
@@ -654,6 +924,15 @@ updateEmployee() {
     .then(async response => {
         const data = await response.json();
         if (response.ok) {
+            // Upload documents after employee update
+            if (this.editDocumentFields.length > 0) {
+                try {
+                    await this.uploadEditDocuments(this.editEmployeeData.id);
+                } catch (docError) {
+                    console.error('Document upload failed:', docError);
+                }
+            }
+            
             this.editEmployeeSuccess = 'Employee updated successfully!';
             setTimeout(() => {
                 this.closeEditEmployeeModal();
@@ -672,7 +951,6 @@ updateEmployee() {
         this.cdr.detectChanges();
     });
 }
-
     // ==================== CREATE EMPLOYEE ====================
     createEmployee() {
         // --- VALIDATION ---
@@ -680,6 +958,19 @@ updateEmployee() {
             this.empError = 'Please fill all required fields (Name, Email, Password)';
             return;
         }
+        if (!this.newEmployee.gender) {
+        this.empError = 'Please select gender';
+        return;
+    }
+    if (!this.newEmployee.dateOfBirth) {
+        this.empError = 'Please enter date of birth';
+        return;
+    }
+
+    if (!this.newEmployee.education) {
+        this.empError = 'Please select education';
+        return;
+    }
 
         // FIX: match backend Identity RequiredLength = 8
         if (this.newEmployee.temporaryPassword.length < 8) {
@@ -712,6 +1003,10 @@ updateEmployee() {
         formData.append('departmentId', this.newEmployee.departmentId.toString());
         formData.append('joiningDate', this.newEmployee.joiningDate);
         formData.append('temporaryPassword', this.newEmployee.temporaryPassword);
+        formData.append('gender', this.newEmployee.gender);
+        formData.append('dateOfBirth', this.newEmployee.dateOfBirth);
+        formData.append('education', this.newEmployee.education);
+        formData.append('instituteName', this.newEmployee.instituteName);
 
         // Append photo only if selected
         if (this.selectedImage) {
@@ -1061,7 +1356,12 @@ updateEmployee() {
     }
 
     // ==================== PROFILE & MENU ====================
-    toggleMenu() { this.showMenu = !this.showMenu; this.cdr.detectChanges(); }
+    toggleMenu() { 
+    console.log('toggleMenu called, current showMenu:', this.showMenu);
+    this.showMenu = !this.showMenu; 
+    console.log('toggleMenu called, new showMenu:', this.showMenu);
+    this.cdr.detectChanges(); 
+}
     toggleSidebar() { this.showSidebar = !this.showSidebar; this.cdr.detectChanges(); }
     goToDashboard() { this.router.navigate(['/admin']); }
     goToEmployees() { this.router.navigate(['/employee']); }

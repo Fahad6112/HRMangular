@@ -16,7 +16,7 @@
                 }
             </div>
             @if (showMenu) {
-                <div class="profile-menu" (click)="$event.stopPropagation()">
+                <div class="profile-menu">
                     <div class="profile-menu-header">
                         @if (profileImage) {
                             <img [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
@@ -38,10 +38,7 @@
     </div>
 </nav>
 
-<!-- Click-outside overlays -->
-@if (showMenu) {
-    <div class="click-outside-overlay" (click)="showMenu = false"></div>
-}
+<!-- NO click-outside-overlay div here — handled by @HostListener in TypeScript -->
 
 @if (showSidebar) {
     <div class="sidebar-overlay" (click)="showSidebar = false"></div>
@@ -64,13 +61,13 @@
             <div class="sidebar-submenu">
                 <div class="sidebar-subitem"
                      [class.active]="activeMenu === 'employees'"
-                     (click)="onMenuClick('employees'); activeMenu = 'employees'; toggleSidebar()">
+                     (click)="onMenuClick('employees')">
                     <span class="sidebar-icon">📋</span>
                     <span class="sidebar-label">Employee List</span>
                 </div>
                 <div class="sidebar-subitem"
                      [class.active]="activeMenu === 'createemployee'"
-                     (click)="onMenuClick('createemployee'); activeMenu = 'createemployee'; toggleSidebar()">
+                     (click)="onMenuClick('createemployee')">
                     <span class="sidebar-icon">➕</span>
                     <span class="sidebar-label">Create Employee</span>
                 </div>
@@ -86,7 +83,7 @@
             <div class="sidebar-submenu">
                 <div class="sidebar-subitem"
                      [class.active]="activeMenu === 'tasks'"
-                     (click)="onMenuClick('tasks'); activeMenu = 'tasks'; toggleSidebar()">
+                     (click)="onMenuClick('tasks')">
                     <span class="sidebar-icon">📋</span>
                     <span class="sidebar-label">Task Management</span>
                 </div>
@@ -107,7 +104,7 @@
             <div class="sidebar-submenu">
                 <div class="sidebar-subitem"
                      [class.active]="activeMenu === 'leaverequests'"
-                     (click)="onMenuClick('leaverequests'); activeMenu = 'leaverequests'; toggleSidebar()">
+                     (click)="onMenuClick('leaverequests')">
                     <span class="sidebar-icon">📝</span>
                     <span class="sidebar-label">Leave Requests</span>
                     @if (pendingLeavesCount > 0) {
@@ -116,7 +113,7 @@
                 </div>
                 <div class="sidebar-subitem"
                      [class.active]="activeMenu === 'leavehistory'"
-                     (click)="onMenuClick('leavehistory'); activeMenu = 'leavehistory'; toggleSidebar()">
+                     (click)="onMenuClick('leavehistory')">
                     <span class="sidebar-icon">📜</span>
                     <span class="sidebar-label">Leave History</span>
                 </div>
@@ -132,7 +129,7 @@
             <div class="sidebar-submenu">
                 <div class="sidebar-subitem"
                      [class.active]="activeMenu === 'attendance'"
-                     (click)="onMenuClick('attendance'); activeMenu = 'attendance'; toggleSidebar()">
+                     (click)="onMenuClick('attendance')">
                     <span class="sidebar-icon">📊</span>
                     <span class="sidebar-label">Attendance Overview</span>
                 </div>
@@ -147,7 +144,6 @@
 
     <!-- HOME / DASHBOARD PAGE -->
     @if (showHomePage) {
-        <!-- Welcome Card -->
         <div class="welcome-section">
             <div class="welcome-card">
                 <div class="welcome-avatar">
@@ -164,7 +160,6 @@
             </div>
         </div>
 
-        <!-- Dashboard Header -->
         <div class="dashboard-header">
             <div class="header-content">
                 <h1>Dashboard Overview</h1>
@@ -172,7 +167,6 @@
             </div>
         </div>
 
-        <!-- Stats Cards -->
         <div class="cards-grid">
             <div class="dashboard-card card-blue">
                 <div class="card-header-row">
@@ -183,7 +177,6 @@
                 <div class="stat-title">Total Users</div>
                 <div class="stat-subtitle">Registered employees</div>
             </div>
-
             <div class="dashboard-card card-green">
                 <div class="card-header-row">
                     <div class="stat-icon-wrapper">✅</div>
@@ -193,7 +186,6 @@
                 <div class="stat-title">Active Users</div>
                 <div class="stat-subtitle">Active accounts</div>
             </div>
-
             <div class="dashboard-card card-purple">
                 <div class="card-header-row">
                     <div class="stat-icon-wrapper">📋</div>
@@ -203,7 +195,6 @@
                 <div class="stat-title">Total Tasks</div>
                 <div class="stat-subtitle">Assigned tasks</div>
             </div>
-
             <div class="dashboard-card card-orange">
                 <div class="card-header-row">
                     <div class="stat-icon-wrapper">📅</div>
@@ -215,7 +206,6 @@
             </div>
         </div>
 
-        <!-- Quick Stats -->
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="content-card">
@@ -243,18 +233,14 @@
     @if (activeContent === 'employees') {
         <div class="content-card">
             <h2>👨‍💼 Employee List</h2>
-
-            <!-- Search and Filter Bar -->
             <div class="row mb-3">
                 <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text">🔍</span>
-                        <input
-                            type="text"
-                            class="form-control"
-                            placeholder="Search by name, email, designation..."
-                            [(ngModel)]="employeeSearchText"
-                            (input)="onEmployeeSearch()"/>
+                        <input type="text" class="form-control"
+                               placeholder="Search by name, email, designation..."
+                               [(ngModel)]="employeeSearchText"
+                               (input)="onEmployeeSearch()"/>
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -269,27 +255,18 @@
                     <button class="btn btn-sm"
                             [class.btn-primary]="employeeStatusFilter === 'active'"
                             [class.btn-outline-primary]="employeeStatusFilter !== 'active'"
-                            (click)="filterEmployeeByStatus('active')">
-                        ✅ Active
-                    </button>
+                            (click)="filterEmployeeByStatus('active')">✅ Active</button>
                     <button class="btn btn-sm"
                             [class.btn-danger]="employeeStatusFilter === 'inactive'"
                             [class.btn-outline-danger]="employeeStatusFilter !== 'inactive'"
-                            (click)="filterEmployeeByStatus('inactive')">
-                        ❌ Inactive
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" (click)="filterEmployeeByStatus('all')">
-                        👥 All
-                    </button>
+                            (click)="filterEmployeeByStatus('inactive')">❌ Inactive</button>
+                    <button class="btn btn-sm btn-outline-secondary" (click)="filterEmployeeByStatus('all')">👥 All</button>
                 </div>
                 <div class="col-md-2 text-end">
-                    <button class="btn btn-primary btn-sm" (click)="resetEmployeeFilters()">
-                        🔄 Reset
-                    </button>
+                    <button class="btn btn-primary btn-sm" (click)="resetEmployeeFilters()">🔄 Reset</button>
                 </div>
             </div>
 
-            <!-- Loading Spinner -->
             @if (empLoading) {
                 <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
@@ -297,7 +274,6 @@
                     </div>
                 </div>
             } @else {
-                <!-- Employee Table -->
                 <div class="table-responsive">
                     <table class="modern-table">
                         <thead>
@@ -313,9 +289,7 @@
                         </thead>
                         <tbody>
                             @if (employeeList.length === 0) {
-                                <tr>
-                                    <td colspan="7" class="text-center py-4">No employees found</td>
-                                </tr>
+                                <tr><td colspan="7" class="text-center py-4">No employees found</td></tr>
                             }
                             @for (emp of employeeList; track emp.id; let i = $index) {
                                 <tr>
@@ -357,7 +331,6 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
                 @if (employeeTotalEmployees > 0) {
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <div class="text-muted">
@@ -390,12 +363,8 @@
     @if (activeContent === 'createemployee') {
         <div class="content-card">
             <h2>➕ Create Employee</h2>
-            @if (empError) {
-                <div class="alert alert-danger">{{ empError }}</div>
-            }
-            @if (empSuccess) {
-                <div class="alert alert-success">{{ empSuccess }}</div>
-            }
+            @if (empError) { <div class="alert alert-danger">{{ empError }}</div> }
+            @if (empSuccess) { <div class="alert alert-success">{{ empSuccess }}</div> }
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label>Full Name *</label>
@@ -409,6 +378,55 @@
                     <label>Phone</label>
                     <input type="text" class="form-control" [(ngModel)]="newEmployee.phone"/>
                 </div>
+                <!-- NEW: Gender Field -->
+            <div class="col-md-6 mb-3">
+                <label>Gender *</label>
+                <select class="form-select" [(ngModel)]="newEmployee.gender">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            
+           <!-- Education Field -->
+<div class="col-md-6 mb-3">
+    <label>Education *</label>
+    <select class="form-select" [(ngModel)]="newEmployee.education">
+        <option value="">Select Education</option>
+        <option value="SSC">SSC</option>
+        <option value="HSC">HSC</option>
+        <option value="Diploma">Diploma</option>
+        <!-- Bachelor's Degrees -->
+        <option value="Bachelor of Science in Computer Science & Engineering (CSE)">BSc in Computer Science & Engineering (CSE)</option>
+        <option value="Bachelor of Business Administration (BBA)">Bachelor of Business Administration (BBA)</option>
+        <option value="Bachelor of Science in Electrical & Electronic Engineering (EEE)">BSc in Electrical & Electronic Engineering (EEE)</option>
+        <option value="Bachelor of Science in Civil Engineering">BSc in Civil Engineering</option>
+        <option value="Bachelor of Science in Mechanical Engineering">BSc in Mechanical Engineering</option>
+        <option value="Bachelor of Arts in English">BA in English</option>
+        <option value="Bachelor of Social Science (BSS)">Bachelor of Social Science (BSS)</option>
+        <option value="Bachelor of Pharmacy">Bachelor of Pharmacy</option>
+        <option value="Bachelor of Law (LLB)">Bachelor of Law (LLB)</option>
+        <option value="Bachelor of Architecture">Bachelor of Architecture</option>
+        <!-- Master's Degrees -->
+        <option value="Master of Science in CSE">MSc in CSE</option>
+        <option value="Master of Business Administration (MBA)">Master of Business Administration (MBA)</option>
+        <option value="Master of Arts in English">MA in English</option>
+        <option value="Master of Social Science (MSS)">Master of Social Science (MSS)</option>
+        <option value="PhD">PhD</option>
+        <option value="Other">Other</option>
+    </select>
+</div>
+            <!-- NEW: Date of Birth Field -->
+            <div class="col-md-6 mb-3">
+                <label>Date of Birth *</label>
+                <input type="date" class="form-control" [(ngModel)]="newEmployee.dateOfBirth"/>
+            </div>
+            <div class="col-md-6 mb-3">
+    <label>Institute Name *</label>
+    <input type="text" class="form-control" [(ngModel)]="newEmployee.instituteName" placeholder="Enter institute name"/>
+</div>
                 <div class="col-md-6 mb-3">
                     <label>Department *</label>
                     <select class="form-select" [(ngModel)]="newEmployee.departmentId">
@@ -455,21 +473,18 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label>Temporary Password *</label>
-                    <input type="password" class="form-control" [(ngModel)]="newEmployee.temporaryPassword" placeholder="Min 6 characters"/>
+                    <input type="password" class="form-control" [(ngModel)]="newEmployee.temporaryPassword" placeholder="Min 8 characters"/>
                 </div>
                 <div class="col-md-12 mb-3">
                     <label>Address *</label>
                     <textarea class="form-control" rows="2" [(ngModel)]="newEmployee.address"></textarea>
                 </div>
 
-                <!-- Documents Section -->
                 <div class="col-md-12 mb-3">
                     <label class="form-label fw-bold">📄 Employee Documents</label>
                     <div class="alert alert-info">
-                        <small>Upload certificates, NID, Parents' NID. (Max 5MB per file)</small>
+                        <small>Upload certificates (SSC, HSC, Undergraduate), NID, Parents' NID. (Max 5MB per file)</small>
                     </div>
-
-                    <!-- Uploaded Documents List -->
                     @if (employeeDocuments.length > 0) {
                         <div class="mb-3">
                             <label class="form-label">Uploaded Documents:</label>
@@ -477,8 +492,7 @@
                                 @for (doc of employeeDocuments; track doc.id; let i = $index) {
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
-                                            <strong>{{ doc.documentType }}</strong> - {{ doc.documentName }}
-                                            <br/>
+                                            <strong>{{ doc.documentType }}</strong> - {{ doc.documentName }}<br/>
                                             <small class="text-muted">Uploaded: {{ doc.uploadedDate | date:'dd MMM yyyy' }}</small>
                                         </div>
                                         <button class="btn btn-danger btn-sm" (click)="removeDocument(doc.id, i)">Remove</button>
@@ -487,13 +501,7 @@
                             </div>
                         </div>
                     }
-
-                    <!-- Add Document Button -->
-                    <button type="button" class="btn btn-outline-primary btn-sm mb-2" (click)="addDocumentField()">
-                        + Add Document
-                    </button>
-
-                    <!-- Dynamic Document Fields -->
+                    <button type="button" class="btn btn-outline-primary btn-sm mb-2" (click)="addDocumentField()">+ Add Document</button>
                     @for (doc of documentFields; track $index; let i = $index) {
                         <div class="card mb-2 p-3">
                             <div class="row">
@@ -526,7 +534,6 @@
                     }
                 </div>
             </div>
-
             <button class="btn btn-success" (click)="createEmployee()" [disabled]="empSaving">
                 {{ empSaving ? 'Saving...' : 'Create Employee' }}
             </button>
@@ -542,19 +549,13 @@
                 <table class="modern-table">
                     <thead>
                         <tr>
-                            <th>Employee</th>
-                            <th>Title</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Due Date</th>
-                            <th>Actions</th>
+                            <th>Employee</th><th>Title</th><th>Priority</th>
+                            <th>Status</th><th>Due Date</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (adminTasks.length === 0) {
-                            <tr>
-                                <td colspan="6" class="text-center">No tasks found</td>
-                            </tr>
+                            <tr><td colspan="6" class="text-center">No tasks found</td></tr>
                         }
                         @for (task of adminTasks; track task.id) {
                             <tr>
@@ -575,9 +576,7 @@
                                     </span>
                                 </td>
                                 <td>{{ task.dueDate | date:'dd MMM yyyy' }}</td>
-                                <td>
-                                    <button class="btn-modern btn-danger-modern" (click)="deleteTask(task.id)">Delete</button>
-                                </td>
+                                <td><button class="btn-modern btn-danger-modern" (click)="deleteTask(task.id)">Delete</button></td>
                             </tr>
                         }
                     </tbody>
@@ -594,21 +593,13 @@
                 <table class="modern-table">
                     <thead>
                         <tr>
-                            <th>Employee</th>
-                            <th>Type</th>
-                            <th>Start</th>
-                            <th>End</th>
-                            <th>Days</th>
-                            <th>Reason</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>Employee</th><th>Type</th><th>Start</th><th>End</th>
+                            <th>Days</th><th>Reason</th><th>Status</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (leaveRequests.length === 0) {
-                            <tr>
-                                <td colspan="8" class="text-center">No pending leaves</td>
-                            </tr>
+                            <tr><td colspan="8" class="text-center">No pending leaves</td></tr>
                         }
                         @for (leave of leaveRequests; track leave.id) {
                             <tr>
@@ -657,19 +648,13 @@
                 <table class="modern-table">
                     <thead>
                         <tr>
-                            <th>Employee</th>
-                            <th>Type</th>
-                            <th>Start</th>
-                            <th>End</th>
-                            <th>Status</th>
-                            <th>Remarks</th>
+                            <th>Employee</th><th>Type</th><th>Start</th>
+                            <th>End</th><th>Status</th><th>Remarks</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (leaveHistory.length === 0) {
-                            <tr>
-                                <td colspan="6" class="text-center">No history found</td>
-                            </tr>
+                            <tr><td colspan="6" class="text-center">No history found</td></tr>
                         }
                         @for (leave of leaveHistory; track leave.id) {
                             <tr>
@@ -707,19 +692,13 @@
                 <table class="modern-table">
                     <thead>
                         <tr>
-                            <th>Employee</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Status</th>
-                            <th>Hours</th>
+                            <th>Employee</th><th>Date</th><th>Check In</th>
+                            <th>Check Out</th><th>Status</th><th>Hours</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (allAttendances.length === 0) {
-                            <tr>
-                                <td colspan="6" class="text-center">No records</td>
-                            </tr>
+                            <tr><td colspan="6" class="text-center">No records</td></tr>
                         }
                         @for (att of allAttendances; track att.id) {
                             <tr>
@@ -740,26 +719,13 @@
 </div><!-- end .container -->
 
 
-            <!-- <div class="mt-3 d-flex justify-content-end">
-                <button class="btn btn-secondary" (click)="closeDocumentsModal()">Close</button>
-            </div> -->
-        
-   
-
-
 <!-- ===== EDIT EMPLOYEE MODAL ===== -->
 @if (showEditEmployeeModal) {
     <div class="modal-overlay" (click)="closeEditEmployeeModal()">
         <div class="modal-box large" (click)="$event.stopPropagation()">
             <h4 class="mb-4">✏️ Edit Employee</h4>
-
-            @if (editEmployeeError) {
-                <div class="alert alert-danger">{{ editEmployeeError }}</div>
-            }
-            @if (editEmployeeSuccess) {
-                <div class="alert alert-success">{{ editEmployeeSuccess }}</div>
-            }
-
+            @if (editEmployeeError) { <div class="alert alert-danger">{{ editEmployeeError }}</div> }
+            @if (editEmployeeSuccess) { <div class="alert alert-success">{{ editEmployeeSuccess }}</div> }
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Full Name *</label>
@@ -774,6 +740,52 @@
                     <label class="form-label">Phone</label>
                     <input type="text" class="form-control" [(ngModel)]="editEmployeeData.phone"/>
                 </div>
+                <div class="col-md-6 mb-3">
+    <label class="form-label">Gender</label>
+    <select class="form-select" [(ngModel)]="editEmployeeData.gender">
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+    </select>
+</div>
+
+<!-- Education Field in Edit Modal -->
+<div class="col-md-6 mb-3">
+    <label class="form-label">Education</label>
+    <select class="form-select" [(ngModel)]="editEmployeeData.education">
+        <option value="">Select Education</option>
+        <option value="SSC">SSC</option>
+        <option value="HSC">HSC</option>
+        <option value="Diploma">Diploma</option>
+        <!-- Bachelor's Degrees -->
+        <option value="Bachelor of Science in Computer Science & Engineering (CSE)">BSc in Computer Science & Engineering (CSE)</option>
+        <option value="Bachelor of Business Administration (BBA)">Bachelor of Business Administration (BBA)</option>
+        <option value="Bachelor of Science in Electrical & Electronic Engineering (EEE)">BSc in Electrical & Electronic Engineering (EEE)</option>
+        <option value="Bachelor of Science in Civil Engineering">BSc in Civil Engineering</option>
+        <option value="Bachelor of Science in Mechanical Engineering">BSc in Mechanical Engineering</option>
+        <option value="Bachelor of Arts in English">BA in English</option>
+        <option value="Bachelor of Social Science (BSS)">Bachelor of Social Science (BSS)</option>
+        <option value="Bachelor of Pharmacy">Bachelor of Pharmacy</option>
+        <option value="Bachelor of Law (LLB)">Bachelor of Law (LLB)</option>
+        <option value="Bachelor of Architecture">Bachelor of Architecture</option>
+        <!-- Master's Degrees -->
+        <option value="Master of Science in CSE">MSc in CSE</option>
+        <option value="Master of Business Administration (MBA)">Master of Business Administration (MBA)</option>
+        <option value="Master of Arts in English">MA in English</option>
+        <option value="Master of Social Science (MSS)">Master of Social Science (MSS)</option>
+        <option value="PhD">PhD</option>
+        <option value="Other">Other</option>
+    </select>
+</div>
+<div class="col-md-6 mb-3">
+    <label class="form-label">Date of Birth</label>
+    <input type="date" class="form-control" [(ngModel)]="editEmployeeData.dateOfBirth"/>
+</div>
+<div class="col-md-6 mb-3">
+    <label>Institute Name *</label>
+    <input type="text" class="form-control" [(ngModel)]="newEmployee.instituteName" placeholder="Enter institute name"/>
+</div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Department *</label>
                     <select class="form-select" [(ngModel)]="editEmployeeData.departmentId">
@@ -832,8 +844,61 @@
                         <img [src]="editPhotoPreview || (apiUrl + editEmployeeData.photo)" class="preview-img" alt="Preview"/>
                     </div>
                 }
+                <div class="col-md-12 mb-3">
+                    <hr/>
+                    <label class="form-label fw-bold">📄 Employee Documents</label>
+                    <div class="alert alert-info">
+                        <small>Upload certificates, NID, Parents' NID. (Max 5MB per file)</small>
+                    </div>
+                    @if (editEmployeeDocuments.length > 0) {
+                        <div class="mb-3">
+                            <label class="form-label">Existing Documents:</label>
+                            <div class="list-group">
+                                @for (doc of editEmployeeDocuments; track doc.id; let i = $index) {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ doc.documentType }}</strong> - {{ doc.documentName }}<br/>
+                                            <small class="text-muted">Uploaded: {{ formatDate(doc.uploadedDate) }}</small>
+                                        </div>
+                                        <button class="btn btn-danger btn-sm" (click)="removeEditDocument(doc.id, i)">Remove</button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <button type="button" class="btn btn-outline-primary btn-sm mb-2" (click)="addEditDocumentField()">+ Add Document</button>
+                    @for (doc of editDocumentFields; track $index; let i = $index) {
+                        <div class="card mb-2 p-3">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Document Type</label>
+                                    <select class="form-select" [(ngModel)]="doc.documentType">
+                                        <option value="">Select Type</option>
+                                        <option value="Certificate">Certificate</option>
+                                        <option value="NID">NID (National ID)</option>
+                                        <option value="ParentsNID">Parents' NID</option>
+                                        <option value="Degree">Degree Certificate</option>
+                                        <option value="Experience">Experience Letter</option>
+                                        <option value="Training">Training Certificate</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label">Document File</label>
+                                    <input type="file" class="form-control" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" (change)="onEditDocumentSelected($event, i)"/>
+                                    <small class="text-muted">Allowed: JPG, PNG, PDF, DOC (Max 5MB)</small>
+                                </div>
+                                <div class="col-md-2 mb-2 d-flex align-items-end">
+                                    <button class="btn btn-danger btn-sm" (click)="removeEditDocumentField(i)">Remove</button>
+                                </div>
+                            </div>
+                            @if (doc.fileError) {
+                                <div class="alert alert-danger mt-2">{{ doc.fileError }}</div>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
-
             <div class="d-flex gap-2 mt-3">
                 <button class="btn btn-success flex-grow-1" (click)="updateEmployee()" [disabled]="editEmployeeSaving">
                     {{ editEmployeeSaving ? 'Saving...' : 'Save Changes' }}
@@ -849,9 +914,7 @@
     <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Assign Task</h4>
-            @if (taskError) {
-                <div class="alert alert-danger">{{ taskError }}</div>
-            }
+            @if (taskError) { <div class="alert alert-danger">{{ taskError }}</div> }
             <div class="mb-3">
                 <label>Employee</label>
                 <select class="form-select" [(ngModel)]="newTask.employeeId">
@@ -872,10 +935,8 @@
             <div class="mb-3">
                 <label>Priority</label>
                 <select class="form-select" [(ngModel)]="newTask.priority">
-                    <option>Low</option>
-                    <option>Medium</option>
-                    <option>High</option>
-                    <option>Urgent</option>
+                    <option>Low</option><option>Medium</option>
+                    <option>High</option><option>Urgent</option>
                 </select>
             </div>
             <div class="mb-3">
@@ -895,12 +956,8 @@
     <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Edit Profile</h4>
-            @if (editErrorMessage) {
-                <div class="alert alert-danger">{{ editErrorMessage }}</div>
-            }
-            @if (editSuccessMessage) {
-                <div class="alert alert-success">{{ editSuccessMessage }}</div>
-            }
+            @if (editErrorMessage) { <div class="alert alert-danger">{{ editErrorMessage }}</div> }
+            @if (editSuccessMessage) { <div class="alert alert-success">{{ editSuccessMessage }}</div> }
             <div class="mb-3">
                 <label>Full Name</label>
                 <input type="text" class="form-control" [(ngModel)]="editFullName"/>
@@ -927,12 +984,8 @@
     <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Change Password</h4>
-            @if (editErrorMessage) {
-                <div class="alert alert-danger">{{ editErrorMessage }}</div>
-            }
-            @if (editSuccessMessage) {
-                <div class="alert alert-success">{{ editSuccessMessage }}</div>
-            }
+            @if (editErrorMessage) { <div class="alert alert-danger">{{ editErrorMessage }}</div> }
+            @if (editSuccessMessage) { <div class="alert alert-success">{{ editSuccessMessage }}</div> }
             <div class="mb-3">
                 <label>New Password</label>
                 <input type="password" class="form-control" [(ngModel)]="newPassword"/>

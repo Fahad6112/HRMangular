@@ -6,7 +6,7 @@
             <span class="menu-bar"></span>
             <span class="menu-bar"></span>
         </button>
-        <a class="navbar-brand" (click)="goBack()" style="cursor: pointer;">HRMApp - Admin Panel</a>
+        <a class="navbar-brand" (click)="goToAdminPanel()" style="cursor: pointer;">HRMApp - Admin Panel</a>
         <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
             <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
                 <img *ngIf="profileImage" [src]="apiUrl + profileImage" class="profile-img" alt="Profile"/>
@@ -28,7 +28,6 @@
     </div>
 </nav>
 
-<!-- Click-outside overlays -->
 <div *ngIf="showMenu" class="click-outside-overlay" (click)="showMenu = false"></div>
 <div *ngIf="showSidebar" class="sidebar-overlay" (click)="showSidebar = false"></div>
 
@@ -41,86 +40,422 @@
     <div class="sidebar-menu">
         <div class="sidebar-item" (click)="goBack()">
             <span class="sidebar-icon">←</span>
-            <span class="sidebar-label">Back to Admin Panel</span>
+            <span class="sidebar-label">Back to Employee List</span>
         </div>
     </div>
 </div>
 
-<!-- ===== MAIN CONTENT ===== -->
-<div class="container mt-4">
-    <!-- Employee Details Section -->
-    <div class="employee-details-card" *ngIf="employeeDetails">
-        <div class="details-header">
-            <h2>👤 Employee Information</h2>
-        </div>
-        <div class="details-grid">
-            <div class="detail-item"><span class="detail-label">Full Name:</span><span class="detail-value">{{ employeeDetails.name }}</span></div>
-            <div class="detail-item"><span class="detail-label">Email:</span><span class="detail-value">{{ employeeDetails.email }}</span></div>
-            <div class="detail-item"><span class="detail-label">Phone:</span><span class="detail-value">{{ employeeDetails.phone || 'N/A' }}</span></div>
-            <div class="detail-item"><span class="detail-label">Department:</span><span class="detail-value">{{ employeeDetails.departmentName }}</span></div>
-            <div class="detail-item"><span class="detail-label">Designation:</span><span class="detail-value">{{ employeeDetails.designation }}</span></div>
-            <div class="detail-item"><span class="detail-label">Salary:</span><span class="detail-value">${{ formatSalary(employeeDetails.salary) }}</span></div>
-            <div class="detail-item"><span class="detail-label">Joining Date:</span><span class="detail-value">{{ formatDate(employeeDetails.joiningDate) }}</span></div>
-            <div class="detail-item"><span class="detail-label">Address:</span><span class="detail-value">{{ employeeDetails.address || 'N/A' }}</span></div>
-        </div>
-    </div>
+<button class="btn-back" (click)="goBack()">Back to Employee List</button>
 
-    <!-- Image Viewer Modal -->
-    <div class="image-viewer-modal" *ngIf="showImageViewer" (click)="closeImageViewer()">
-        <div class="image-viewer-content" (click)="$event.stopPropagation()">
-            <button class="close-viewer" (click)="closeImageViewer()">✕</button>
-            <button class="nav-btn prev-btn" (click)="previousImage()" *ngIf="imageDocuments.length > 1">❮</button>
-            <div class="image-container">
-                <img [src]="currentImageUrl" alt="Document Image" (error)="onImageError($event)"/>
-                <div class="image-info" *ngIf="currentImageDoc">
-                    <p><strong>{{ currentImageDoc.documentType }}</strong> - {{ currentImageDoc.documentName }}</p>
-                    <p class="image-counter">{{ currentImageIndex + 1 }} of {{ imageDocuments.length }}</p>
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container">
+
+    <!-- Employee Profile Card -->
+    <div class="profile-card" *ngIf="employeeDetails">
+        <div class="profile-cover"></div>
+        <div class="profile-content">
+            <div class="profile-avatar">
+                <img *ngIf="employeeDetails.photo" [src]="apiUrl + employeeDetails.photo" alt="Profile"/>
+                <div *ngIf="!employeeDetails.photo" class="avatar-placeholder">
+                    {{ employeeDetails.name?.charAt(0).toUpperCase() }}
                 </div>
             </div>
-            <button class="nav-btn next-btn" (click)="nextImage()" *ngIf="imageDocuments.length > 1">❯</button>
-        </div>
-    </div>
-
-    <!-- Documents Section Header -->
-    <div class="documents-header">
-        <div>
-            <h2>📄 Employee Documents</h2>
-            <span *ngIf="documents.length > 0" class="badge-count">{{ documents.length }} Total Documents</span>
-        </div>
-        <button class="btn-back" (click)="goBack()">← Back to Employee List</button>
-    </div>
-
-    <!-- Loading State -->
-    <div *ngIf="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 text-muted">Loading documents...</p>
-    </div>
-
-    <!-- Error State -->
-    <div *ngIf="!loading && error" class="alert alert-danger">
-        <strong>Error:</strong> {{ error }}
-        <button class="btn-retry" (click)="loadDocuments()">Retry</button>
-    </div>
-
-    <!-- Documents Grid -->
-    <div *ngIf="!loading && !error" class="content-card">
-        <div class="documents-grid">
-            <div *ngFor="let doc of documents; let i = index" class="document-card" (click)="openImageViewer(i)">
-                <div class="document-preview">
-                    <div class="preview-icon">📄</div>
-                    <img *ngIf="isImageFile(doc.documentName)" [src]="apiUrl + doc.documentPath" class="preview-image" (error)="onImageError($event)"/>
+            <div class="profile-info">
+                <div class="profile-info-top">
+                    <div>
+                        <h1>{{ employeeDetails.name }}</h1>
+                        <div class="profile-badges">
+                            <span class="badge-designation">{{ employeeDetails.designation }}</span>
+                            <span class="badge-department">{{ employeeDetails.departmentName }}</span>
+                        </div>
+                    </div>
+                    <!-- ===== DOWNLOAD INFO PDF BUTTON ===== -->
+                    <button class="btn-download-info" (click)="downloadEmployeeInfoPdf()" [disabled]="generatingPdf">
+                        <span *ngIf="!generatingPdf">⬇️ Download Info PDF</span>
+                        <span *ngIf="generatingPdf">⏳ Generating...</span>
+                    </button>
                 </div>
-                <div class="document-info">
-                    <span class="doc-type-badge" [ngClass]="getBadgeClass(doc.documentType)">{{ doc.documentType }}</span>
-                    <p class="doc-name">{{ doc.documentName }}</p>
-                    <p class="doc-date">{{ formatDate(doc.uploadedDate) }}</p>
-                    <p class="doc-size">{{ formatFileSize(doc.fileSize) }}</p>
-                    <div class="doc-actions">
-                        <a [href]="apiUrl + doc.documentPath" [download]="doc.documentName" class="btn-download-sm" (click)="$event.stopPropagation()">⬇️ Download</a>
-                        <button class="btn-delete-sm" (click)="deleteDocument(doc.id, $event)">🗑️ Delete</button>
+                <div class="profile-stats">
+                    <div class="stat">
+                        <span class="stat-label">Employee ID</span>
+                        <span class="stat-value">#{{ employeeDetails.id }}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Experience</span>
+                        <span class="stat-value">{{ calculateExperience(employeeDetails.joiningDate) }}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Documents</span>
+                        <span class="stat-value">{{ documents.length }}</span>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Personal Details Section -->
+    <div class="details-section" *ngIf="employeeDetails">
+        <div class="section-header">
+            <div class="section-header-icon">👤</div>
+            <h2>Personal Details</h2>
+        </div>
+        <div class="details-grid">
+            <div class="detail-row">
+                <div class="detail-label">Full Name</div>
+                <div class="detail-value">{{ employeeDetails.name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Gender</div>
+                <div class="detail-value">{{ employeeDetails.gender || 'Not specified' }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Date of Birth</div>
+                <div class="detail-value">{{ formatDate(employeeDetails.dateOfBirth) }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Education</div>
+                <div class="detail-value">{{ employeeDetails.education || 'Not specified' }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Institute</div>
+                <div class="detail-value">{{ employeeDetails.instituteName || 'Not specified' }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Joining Date</div>
+                <div class="detail-value">{{ formatDate(employeeDetails.joiningDate) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information Section -->
+    <div class="details-section" *ngIf="employeeDetails">
+        <div class="section-header">
+            <div class="section-header-icon">📞</div>
+            <h2>Contact Information</h2>
+        </div>
+        <div class="details-grid">
+            <div class="detail-row">
+                <div class="detail-label">Email Address</div>
+                <div class="detail-value">{{ employeeDetails.email }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Phone Number</div>
+                <div class="detail-value">{{ employeeDetails.phone || 'Not specified' }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Address</div>
+                <div class="detail-value">{{ employeeDetails.address || 'Not specified' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Information Section -->
+    <div class="details-section" *ngIf="employeeDetails">
+        <div class="section-header">
+            <div class="section-header-icon">💼</div>
+            <h2>Professional Information</h2>
+        </div>
+        <div class="details-grid">
+            <div class="detail-row">
+                <div class="detail-label">Department</div>
+                <div class="detail-value">{{ employeeDetails.departmentName }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Designation</div>
+                <div class="detail-value">{{ employeeDetails.designation }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Salary</div>
+                <div class="detail-value">${{ formatSalary(employeeDetails.salary) }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Experience</div>
+                <div class="detail-value">{{ calculateExperience(employeeDetails.joiningDate) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents Section Header -->
+    <div class="documents-section-header">
+        <div class="section-title-wrapper">
+            <div class="title-icon">📁</div>
+            <div>
+                <h2>Employee Documents</h2>
+                <p>Manage and access all employee documents</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-wrapper">
+        <div class="loading-spinner"></div>
+        <p>Loading documents...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!loading && error" class="error-wrapper">
+        <div class="error-icon">⚠️</div>
+        <h3>Unable to Load Documents</h3>
+        <p>{{ error }}</p>
+        <button class="retry-button" (click)="loadDocuments()">Retry</button>
+    </div>
+
+    <!-- Document Sections -->
+    <div *ngIf="!loading && !error" class="documents-container">
+
+        <!-- Certificates -->
+        <div *ngIf="getDocumentsByType('Certificate').length > 0" class="doc-category">
+            <div class="category-header">
+                <div class="category-badge certificate">🎓</div>
+                <div class="category-info">
+                    <h3>Certificates</h3>
+                    <p>Academic and professional certifications</p>
+                </div>
+                <div class="category-count">{{ getDocumentsByType('Certificate').length }} files</div>
+            </div>
+            <div class="doc-list">
+                <div *ngFor="let doc of getDocumentsByType('Certificate')" class="doc-item">
+                    <div class="doc-icon">
+                        <span *ngIf="isPdfFile(doc.documentName)">📄</span>
+                        <span *ngIf="isImageFile(doc.documentName)">🖼️</span>
+                        <span *ngIf="!isImageFile(doc.documentName) && !isPdfFile(doc.documentName)">📎</span>
+                    </div>
+                    <div class="doc-details">
+                        <h4>{{ doc.documentName }}</h4>
+                        <div class="doc-metadata">
+                            <span>📅 {{ formatDate(doc.uploadedDate) }}</span>
+                            <span>💾 {{ formatFileSize(doc.fileSize) }}</span>
+                        </div>
+                    </div>
+                    <div class="doc-actions" (click)="$event.stopPropagation()">
+                        <button class="action-btn view" title="View" (click)="openDocument(doc)">👁️ View</button>
+                        <button class="action-btn download" title="Download" (click)="downloadDocument(doc)">⬇️ Save</button>
+                        <button class="action-btn delete" title="Delete" (click)="deleteDocument(doc.id, $event)">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NID Cards -->
+        <div *ngIf="getDocumentsByType('NID').length > 0" class="doc-category">
+            <div class="category-header">
+                <div class="category-badge nid">🪪</div>
+                <div class="category-info">
+                    <h3>National ID Card</h3>
+                    <p>Government identification documents</p>
+                </div>
+                <div class="category-count">{{ getDocumentsByType('NID').length }} files</div>
+            </div>
+            <div class="doc-list">
+                <div *ngFor="let doc of getDocumentsByType('NID')" class="doc-item">
+                    <div class="doc-icon">
+                        <span *ngIf="isPdfFile(doc.documentName)">📄</span>
+                        <span *ngIf="isImageFile(doc.documentName)">🖼️</span>
+                        <span *ngIf="!isImageFile(doc.documentName) && !isPdfFile(doc.documentName)">📎</span>
+                    </div>
+                    <div class="doc-details">
+                        <h4>{{ doc.documentName }}</h4>
+                        <div class="doc-metadata">
+                            <span>📅 {{ formatDate(doc.uploadedDate) }}</span>
+                            <span>💾 {{ formatFileSize(doc.fileSize) }}</span>
+                        </div>
+                    </div>
+                    <div class="doc-actions" (click)="$event.stopPropagation()">
+                        <button class="action-btn view" title="View" (click)="openDocument(doc)">👁️ View</button>
+                        <button class="action-btn download" title="Download" (click)="downloadDocument(doc)">⬇️ Save</button>
+                        <button class="action-btn delete" title="Delete" (click)="deleteDocument(doc.id, $event)">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parents' NID -->
+        <div *ngIf="getDocumentsByType('ParentsNID').length > 0" class="doc-category">
+            <div class="category-header">
+                <div class="category-badge parents">👨‍👩‍👧</div>
+                <div class="category-info">
+                    <h3>Parents' NID</h3>
+                    <p>Father & mother identification</p>
+                </div>
+                <div class="category-count">{{ getDocumentsByType('ParentsNID').length }} files</div>
+            </div>
+            <div class="doc-list">
+                <div *ngFor="let doc of getDocumentsByType('ParentsNID')" class="doc-item">
+                    <div class="doc-icon">
+                        <span *ngIf="isPdfFile(doc.documentName)">📄</span>
+                        <span *ngIf="isImageFile(doc.documentName)">🖼️</span>
+                        <span *ngIf="!isImageFile(doc.documentName) && !isPdfFile(doc.documentName)">📎</span>
+                    </div>
+                    <div class="doc-details">
+                        <h4>{{ doc.documentName }}</h4>
+                        <div class="doc-metadata">
+                            <span>📅 {{ formatDate(doc.uploadedDate) }}</span>
+                            <span>💾 {{ formatFileSize(doc.fileSize) }}</span>
+                        </div>
+                    </div>
+                    <div class="doc-actions" (click)="$event.stopPropagation()">
+                        <button class="action-btn view" title="View" (click)="openDocument(doc)">👁️ View</button>
+                        <button class="action-btn download" title="Download" (click)="downloadDocument(doc)">⬇️ Save</button>
+                        <button class="action-btn delete" title="Delete" (click)="deleteDocument(doc.id, $event)">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Degrees -->
+        <div *ngIf="getDocumentsByType('Degree').length > 0" class="doc-category">
+            <div class="category-header">
+                <div class="category-badge degree">📜</div>
+                <div class="category-info">
+                    <h3>Degrees & Certifications</h3>
+                    <p>Educational degrees and course certificates</p>
+                </div>
+                <div class="category-count">{{ getDocumentsByType('Degree').length }} files</div>
+            </div>
+            <div class="doc-list">
+                <div *ngFor="let doc of getDocumentsByType('Degree')" class="doc-item">
+                    <div class="doc-icon">
+                        <span *ngIf="isPdfFile(doc.documentName)">📄</span>
+                        <span *ngIf="isImageFile(doc.documentName)">🖼️</span>
+                        <span *ngIf="!isImageFile(doc.documentName) && !isPdfFile(doc.documentName)">📎</span>
+                    </div>
+                    <div class="doc-details">
+                        <h4>{{ doc.documentName }}</h4>
+                        <div class="doc-metadata">
+                            <span>📅 {{ formatDate(doc.uploadedDate) }}</span>
+                            <span>💾 {{ formatFileSize(doc.fileSize) }}</span>
+                        </div>
+                    </div>
+                    <div class="doc-actions" (click)="$event.stopPropagation()">
+                        <button class="action-btn view" title="View" (click)="openDocument(doc)">👁️ View</button>
+                        <button class="action-btn download" title="Download" (click)="downloadDocument(doc)">⬇️ Save</button>
+                        <button class="action-btn delete" title="Delete" (click)="deleteDocument(doc.id, $event)">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experience -->
+        <div *ngIf="getDocumentsByType('Experience').length > 0" class="doc-category">
+            <div class="category-header">
+                <div class="category-badge experience">💼</div>
+                <div class="category-info">
+                    <h3>Experience Letters</h3>
+                    <p>Work experience and employment records</p>
+                </div>
+                <div class="category-count">{{ getDocumentsByType('Experience').length }} files</div>
+            </div>
+            <div class="doc-list">
+                <div *ngFor="let doc of getDocumentsByType('Experience')" class="doc-item">
+                    <div class="doc-icon">
+                        <span *ngIf="isPdfFile(doc.documentName)">📄</span>
+                        <span *ngIf="isImageFile(doc.documentName)">🖼️</span>
+                        <span *ngIf="!isImageFile(doc.documentName) && !isPdfFile(doc.documentName)">📎</span>
+                    </div>
+                    <div class="doc-details">
+                        <h4>{{ doc.documentName }}</h4>
+                        <div class="doc-metadata">
+                            <span>📅 {{ formatDate(doc.uploadedDate) }}</span>
+                            <span>💾 {{ formatFileSize(doc.fileSize) }}</span>
+                        </div>
+                    </div>
+                    <div class="doc-actions" (click)="$event.stopPropagation()">
+                        <button class="action-btn view" title="View" (click)="openDocument(doc)">👁️ View</button>
+                        <button class="action-btn download" title="Download" (click)="downloadDocument(doc)">⬇️ Save</button>
+                        <button class="action-btn delete" title="Delete" (click)="deleteDocument(doc.id, $event)">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training -->
+        <div *ngIf="getDocumentsByType('Training').length > 0" class="doc-category">
+            <div class="category-header">
+                <div class="category-badge training">🏆</div>
+                <div class="category-info">
+                    <h3>Training Certificates</h3>
+                    <p>Professional training and workshops</p>
+                </div>
+                <div class="category-count">{{ getDocumentsByType('Training').length }} files</div>
+            </div>
+            <div class="doc-list">
+                <div *ngFor="let doc of getDocumentsByType('Training')" class="doc-item">
+                    <div class="doc-icon">
+                        <span *ngIf="isPdfFile(doc.documentName)">📄</span>
+                        <span *ngIf="isImageFile(doc.documentName)">🖼️</span>
+                        <span *ngIf="!isImageFile(doc.documentName) && !isPdfFile(doc.documentName)">📎</span>
+                    </div>
+                    <div class="doc-details">
+                        <h4>{{ doc.documentName }}</h4>
+                        <div class="doc-metadata">
+                            <span>📅 {{ formatDate(doc.uploadedDate) }}</span>
+                            <span>💾 {{ formatFileSize(doc.fileSize) }}</span>
+                        </div>
+                    </div>
+                    <div class="doc-actions" (click)="$event.stopPropagation()">
+                        <button class="action-btn view" title="View" (click)="openDocument(doc)">👁️ View</button>
+                        <button class="action-btn download" title="Download" (click)="downloadDocument(doc)">⬇️ Save</button>
+                        <button class="action-btn delete" title="Delete" (click)="deleteDocument(doc.id, $event)">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Documents -->
+        <div *ngIf="getDocumentsByType('Other').length > 0" class="doc-category">
+            <div class="category-header">
+                <div class="category-badge other">📁</div>
+                <div class="category-info">
+                    <h3>Other Documents</h3>
+                    <p>Miscellaneous documents and files</p>
+                </div>
+                <div class="category-count">{{ getDocumentsByType('Other').length }} files</div>
+            </div>
+            <div class="doc-list">
+                <div *ngFor="let doc of getDocumentsByType('Other')" class="doc-item">
+                    <div class="doc-icon">
+                        <span *ngIf="isPdfFile(doc.documentName)">📄</span>
+                        <span *ngIf="isImageFile(doc.documentName)">🖼️</span>
+                        <span *ngIf="!isImageFile(doc.documentName) && !isPdfFile(doc.documentName)">📎</span>
+                    </div>
+                    <div class="doc-details">
+                        <h4>{{ doc.documentName }}</h4>
+                        <div class="doc-metadata">
+                            <span>📅 {{ formatDate(doc.uploadedDate) }}</span>
+                            <span>💾 {{ formatFileSize(doc.fileSize) }}</span>
+                        </div>
+                    </div>
+                    <div class="doc-actions" (click)="$event.stopPropagation()">
+                        <button class="action-btn view" title="View" (click)="openDocument(doc)">👁️ View</button>
+                        <button class="action-btn download" title="Download" (click)="downloadDocument(doc)">⬇️ Save</button>
+                        <button class="action-btn delete" title="Delete" (click)="deleteDocument(doc.id, $event)">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="documents.length === 0" class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>No Documents Found</h3>
+            <p>This employee hasn't uploaded any documents yet.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== IMAGE VIEWER MODAL ===== -->
+<div class="image-viewer-modal" *ngIf="showImageViewer" (click)="closeImageViewer()">
+    <div class="image-viewer-content" (click)="$event.stopPropagation()">
+        <button class="close-viewer" (click)="closeImageViewer()">✕</button>
+        <button class="nav-btn prev-btn" (click)="previousImage()" *ngIf="imageDocuments.length > 1">❮</button>
+        <div class="image-container">
+            <img [src]="currentImageUrl" alt="Document Image" (error)="onImageError($event)"/>
+            <div class="image-info" *ngIf="currentImageDoc">
+                <p><strong>{{ currentImageDoc.documentType }}</strong> — {{ currentImageDoc.documentName }}</p>
+                <p class="image-counter">{{ currentImageIndex + 1 }} of {{ imageDocuments.length }}</p>
+                <button class="btn-download-from-viewer" (click)="downloadDocument(currentImageDoc)">⬇️ Download</button>
+            </div>
+        </div>
+        <button class="nav-btn next-btn" (click)="nextImage()" *ngIf="imageDocuments.length > 1">❯</button>
     </div>
 </div>

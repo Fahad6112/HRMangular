@@ -20,3 +20,18 @@ input, textarea {
     -webkit-user-select: text;
     user-select: text;
 }
+/* Global page transition */
+router-outlet + * {
+    animation: pageTransition 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes pageTransition {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
