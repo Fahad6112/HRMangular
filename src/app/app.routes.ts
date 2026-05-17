@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login';
+import { LayoutComponent } from './layout/layout';
 import { AdminComponent } from './admin/admin';
 import { HomeComponent } from './home/home';
 import { RegisterComponent } from './register/register';
@@ -13,16 +14,25 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
     { path: 'change-password', component: ChangePasswordComponent },
-    { path: 'admin', component: AdminComponent },
-    { path: 'admin/employeelist', component: AdminComponent },
-    { path: 'admin/createemployee', component: AdminComponent },
-    { path: 'admin/tasks', component: AdminComponent },
-    { path: 'admin/leaverequests', component: AdminComponent },
-    { path: 'admin/leavehistory', component: AdminComponent },
-    { path: 'admin/attendance', component: AdminComponent },
-    { path: 'admin/documents/:id', component: EmployeeDocumentsComponent },
     { path: 'home', component: HomeComponent },
     { path: 'employee', component: EmployeeComponent },
     { path: 'employee-dashboard', component: EmployeeDashboardComponent },
+    
+    // Admin routes with Layout (sidebar + navbar)
+    { 
+        path: 'admin', 
+        component: LayoutComponent,
+        children: [
+            { path: '', component: AdminComponent },
+            { path: 'employeelist', component: AdminComponent },
+            { path: 'createemployee', component: AdminComponent },
+            { path: 'tasks', component: AdminComponent },
+            { path: 'leaverequests', component: AdminComponent },
+            { path: 'leavehistory', component: AdminComponent },
+            { path: 'attendance', component: AdminComponent },
+            { path: 'documents/:id', component: EmployeeDocumentsComponent }
+        ]
+    },
+    
     { path: '**', redirectTo: '/login' }
 ];

@@ -1,0 +1,228 @@
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar navbar-expand-sm navbar-dark">
+    <div class="container-fluid">
+        <button class="menu-toggle-btn" (click)="toggleSidebar(); $event.stopPropagation()">
+            <span class="menu-bar"></span>
+            <span class="menu-bar"></span>
+            <span class="menu-bar"></span>
+        </button>
+        <a class="navbar-brand" (click)="goToHome()" style="cursor: pointer;">HRMApp - Admin Panel</a>
+        <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
+            <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">>
+                @if (profileImage) {
+                    <img [src]="apiUrl + profileImage" class="profile-img" alt="Profile"/>
+                } @else {
+                    <div class="profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
+                }
+            </div>
+            @if (showMenu) {
+                <div class="profile-menu">
+                    <div class="profile-menu-header">
+                        @if (profileImage) {
+                            <img [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
+                        } @else {
+                            <div class="menu-profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
+                        }
+                        <div>
+                            <p class="menu-name">{{ fullName }}</p>
+                            <p class="menu-email">{{ email }}</p>
+                        </div>
+                    </div>
+                    <hr class="menu-divider"/>
+                   <div class="menu-item" (click)="openEditProfile(); $event.stopPropagation()">✏️ Edit Profile</div>
+<div class="menu-item" (click)="openChangePassword(); $event.stopPropagation()">🔒 Change Password</div>
+<div class="menu-item text-danger" (click)="logout(); $event.stopPropagation()">🚪 Logout</div>
+                </div>
+            }
+        </div>
+    </div>
+</nav>
+
+<!-- Click-outside overlays -->
+
+
+@if (showSidebar) {
+    <div class="sidebar-overlay" (click)="showSidebar = false"></div>
+}
+
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar" [class.sidebar-open]="showSidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">📋 Menu</span>
+        <button class="sidebar-close-btn" (click)="showSidebar = false">✕</button>
+    </div>
+    <div class="sidebar-menu">
+
+        <!-- Management Section -->
+        <div class="sidebar-section-title" (click)="toggleSection('management')">
+            👥 MANAGEMENT
+            <span class="section-arrow">{{ expandedSections['management'] ? '▼' : '▶' }}</span>
+        </div>
+        @if (expandedSections['management']) {
+            <div class="sidebar-submenu">
+                <div class="sidebar-subitem" [class.active]="activeMenu === 'employees'" (click)="onMenuClick('employees')">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-label">Employee List</span>
+                </div>
+                <div class="sidebar-subitem" [class.active]="activeMenu === 'createemployee'" (click)="onMenuClick('createemployee')">
+                    <span class="sidebar-icon">➕</span>
+                    <span class="sidebar-label">Create Employee</span>
+                </div>
+            </div>
+        }
+
+        <!-- Tasks Section -->
+        <div class="sidebar-section-title" (click)="toggleSection('tasks')">
+            📋 TASKS
+            <span class="section-arrow">{{ expandedSections['tasks'] ? '▼' : '▶' }}</span>
+        </div>
+        @if (expandedSections['tasks']) {
+            <div class="sidebar-submenu">
+                <div class="sidebar-subitem" [class.active]="activeMenu === 'tasks'" (click)="onMenuClick('tasks')">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-label">Task Management</span>
+                </div>
+                <div class="sidebar-subitem" (click)="openAssignTaskModal()">
+                    <span class="sidebar-icon">➕</span>
+                    <span class="sidebar-label">Assign New Task</span>
+                </div>
+            </div>
+        }
+
+        <!-- Leaves Section -->
+        <div class="sidebar-section-title" (click)="toggleSection('leaves')">
+            📅 LEAVES
+            <span class="section-arrow">{{ expandedSections['leaves'] ? '▼' : '▶' }}</span>
+        </div>
+        @if (expandedSections['leaves']) {
+            <div class="sidebar-submenu">
+                <div class="sidebar-subitem" [class.active]="activeMenu === 'leaverequests'" (click)="onMenuClick('leaverequests')">
+                    <span class="sidebar-icon">📝</span>
+                    <span class="sidebar-label">Leave Requests</span>
+                    @if (pendingLeavesCount > 0) {
+                        <span class="badge bg-danger ms-2">{{ pendingLeavesCount }}</span>
+                    }
+                </div>
+                <div class="sidebar-subitem" [class.active]="activeMenu === 'leavehistory'" (click)="onMenuClick('leavehistory')">
+                    <span class="sidebar-icon">📜</span>
+                    <span class="sidebar-label">Leave History</span>
+                </div>
+            </div>
+        }
+
+        <!-- Attendance Section -->
+        <div class="sidebar-section-title" (click)="toggleSection('attendance')">
+            ⏰ ATTENDANCE
+            <span class="section-arrow">{{ expandedSections['attendance'] ? '▼' : '▶' }}</span>
+        </div>
+        @if (expandedSections['attendance']) {
+            <div class="sidebar-submenu">
+                <div class="sidebar-subitem" [class.active]="activeMenu === 'attendance'" (click)="onMenuClick('attendance')">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Attendance Overview</span>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content-wrapper">
+    <router-outlet></router-outlet>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Edit Profile Modal -->
+@if (showEditProfile) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Edit Profile</h4>
+            @if (editErrorMessage) { <div class="alert alert-danger">{{ editErrorMessage }}</div> }
+            @if (editSuccessMessage) { <div class="alert alert-success">{{ editSuccessMessage }}</div> }
+            <div class="mb-3">
+                <label>Full Name</label>
+                <input type="text" class="form-control" [(ngModel)]="editFullName"/>
+            </div>
+            <div class="mb-3">
+                <label>Profile Image</label>
+                <input type="file" class="form-control" accept="image/*" (change)="onImageSelected($event)"/>
+            </div>
+            @if (imagePreview) {
+                <div class="text-center mb-3">
+                    <img [src]="imagePreview" class="preview-img" alt="Preview"/>
+                </div>
+            }
+            <button class="btn btn-primary w-100" (click)="updateProfile()" [disabled]="updating">
+                {{ updating ? 'Updating...' : 'Update Profile' }}
+            </button>
+            <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
+        </div>
+    </div>
+}
+
+<!-- Change Password Modal -->
+@if (showChangePassword) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Change Password</h4>
+            @if (editErrorMessage) { <div class="alert alert-danger">{{ editErrorMessage }}</div> }
+            @if (editSuccessMessage) { <div class="alert alert-success">{{ editSuccessMessage }}</div> }
+            <div class="mb-3">
+                <label>New Password</label>
+                <input type="password" class="form-control" [(ngModel)]="newPassword"/>
+            </div>
+            <div class="mb-3">
+                <label>Confirm Password</label>
+                <input type="password" class="form-control" [(ngModel)]="confirmNewPassword"/>
+            </div>
+            <button class="btn btn-warning w-100" (click)="changePassword()" [disabled]="updating">
+                {{ updating ? 'Changing...' : 'Change Password' }}
+            </button>
+            <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
+        </div>
+    </div>
+}
+
+<!-- Assign Task Modal -->
+@if (showTaskModal) {
+    <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+            <h4 class="mb-3">Assign Task</h4>
+            @if (taskError) { <div class="alert alert-danger">{{ taskError }}</div> }
+            <div class="mb-3">
+                <label>Employee</label>
+                <select class="form-select" [(ngModel)]="newTask.employeeId">
+                    <option value="">Select</option>
+                    @for (emp of employees; track emp.id) {
+                        <option [value]="emp.id">{{ emp.name }}</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Title</label>
+                <input type="text" class="form-control" [(ngModel)]="newTask.title"/>
+            </div>
+            <div class="mb-3">
+                <label>Description</label>
+                <textarea class="form-control" rows="2" [(ngModel)]="newTask.description"></textarea>
+            </div>
+            <div class="mb-3">
+                <label>Priority</label>
+                <select class="form-select" [(ngModel)]="newTask.priority">
+                    <option>Low</option><option>Medium</option>
+                    <option>High</option><option>Urgent</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Due Date</label>
+                <input type="date" class="form-control" [(ngModel)]="newTask.dueDate"/>
+            </div>
+            <button class="btn btn-success w-100" (click)="assignTask()" [disabled]="assigning">
+                {{ assigning ? 'Assigning...' : 'Assign' }}
+            </button>
+            <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
+        </div>
+    </div>
+}

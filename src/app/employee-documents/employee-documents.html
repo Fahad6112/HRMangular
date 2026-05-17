@@ -1,51 +1,9 @@
-<!-- ===== NAVBAR ===== -->
-<nav class="navbar navbar-expand-sm navbar-dark">
-    <div class="container-fluid">
-        <button class="menu-toggle-btn" (click)="toggleSidebar(); $event.stopPropagation()">
-            <span class="menu-bar"></span>
-            <span class="menu-bar"></span>
-            <span class="menu-bar"></span>
-        </button>
-        <a class="navbar-brand" (click)="goToAdminPanel()" style="cursor: pointer;">HRMApp - Admin Panel</a>
-        <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
-            <div class="profile-wrapper" (click)="toggleMenu(); $event.stopPropagation()">
-                <img *ngIf="profileImage" [src]="apiUrl + profileImage" class="profile-img" alt="Profile"/>
-                <div *ngIf="!profileImage" class="profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
-            </div>
-            <div *ngIf="showMenu" class="profile-menu" (click)="$event.stopPropagation()">
-                <div class="profile-menu-header">
-                    <img *ngIf="profileImage" [src]="apiUrl + profileImage" class="menu-profile-img" alt="Profile"/>
-                    <div *ngIf="!profileImage" class="menu-profile-placeholder">{{ email.charAt(0).toUpperCase() }}</div>
-                    <div>
-                        <p class="menu-name">{{ fullName }}</p>
-                        <p class="menu-email">{{ email }}</p>
-                    </div>
-                </div>
-                <hr class="menu-divider"/>
-                <div class="menu-item text-danger" (click)="logout()">🚪 Logout</div>
-            </div>
-        </div>
-    </div>
-</nav>
-
-<div *ngIf="showMenu" class="click-outside-overlay" (click)="showMenu = false"></div>
-<div *ngIf="showSidebar" class="sidebar-overlay" (click)="showSidebar = false"></div>
-
-<!-- ===== SIDEBAR ===== -->
-<div class="sidebar" [class.sidebar-open]="showSidebar">
-    <div class="sidebar-header">
-        <span class="sidebar-title">📋 Menu</span>
-        <button class="sidebar-close-btn" (click)="showSidebar = false">✕</button>
-    </div>
-    <div class="sidebar-menu">
-        <div class="sidebar-item" (click)="goBack()">
-            <span class="sidebar-icon">←</span>
-            <span class="sidebar-label">Back to Employee List</span>
-        </div>
-    </div>
-</div>
-
-<button class="btn-back" (click)="goBack()">Back to Employee List</button>
+<!-- Back Button at Top Right -->
+<!-- <div class="top-bar">
+    <button class="btn-back" (click)="goBack()">
+        ← Back to Employee List
+    </button>
+</div> -->
 
 <!-- ===== MAIN CONTENT ===== -->
 <div class="container">
@@ -54,6 +12,7 @@
     <div class="profile-card" *ngIf="employeeDetails">
         <div class="profile-cover"></div>
         <div class="profile-content">
+            
             <div class="profile-avatar">
                 <img *ngIf="employeeDetails.photo" [src]="apiUrl + employeeDetails.photo" alt="Profile"/>
                 <div *ngIf="!employeeDetails.photo" class="avatar-placeholder">
@@ -93,6 +52,9 @@
         </div>
     </div>
 
+    <button class="btn-back" (click)="goBack()">
+        ← Back to Employee List
+    </button>
     <!-- Personal Details Section -->
     <div class="details-section" *ngIf="employeeDetails">
         <div class="section-header">

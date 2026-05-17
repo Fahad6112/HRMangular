@@ -1,5 +1,5 @@
 <!-- ===== NAVBAR ===== -->
-<nav class="navbar navbar-expand-sm navbar-dark">
+<!-- <nav class="navbar navbar-expand-sm navbar-dark">
     <div class="container-fluid">
         <button class="menu-toggle-btn" (click)="toggleSidebar(); $event.stopPropagation()">
             <span class="menu-bar"></span>
@@ -36,24 +36,24 @@
             }
         </div>
     </div>
-</nav>
+</nav> -->
 
 <!-- NO click-outside-overlay div here — handled by @HostListener in TypeScript -->
 
-@if (showSidebar) {
+<!-- @if (showSidebar) {
     <div class="sidebar-overlay" (click)="showSidebar = false"></div>
-}
+} -->
 
 <!-- ===== SIDEBAR ===== -->
-<div class="sidebar" [class.sidebar-open]="showSidebar">
+<!-- <div class="sidebar" [class.sidebar-open]="showSidebar">
     <div class="sidebar-header">
         <span class="sidebar-title">📋 Menu</span>
         <button class="sidebar-close-btn" (click)="showSidebar = false">✕</button>
     </div>
-    <div class="sidebar-menu">
+    <div class="sidebar-menu"> -->
 
         <!-- Management Section -->
-        <div class="sidebar-section-title" (click)="toggleSection('management')">
+        <!-- <div class="sidebar-section-title" (click)="toggleSection('management')">
             👥 MANAGEMENT
             <span class="section-arrow">{{ expandedSections['management'] ? '▼' : '▶' }}</span>
         </div>
@@ -72,10 +72,10 @@
                     <span class="sidebar-label">Create Employee</span>
                 </div>
             </div>
-        }
+        } -->
 
         <!-- Tasks Section -->
-        <div class="sidebar-section-title" (click)="toggleSection('tasks')">
+        <!-- <div class="sidebar-section-title" (click)="toggleSection('tasks')">
             📋 TASKS
             <span class="section-arrow">{{ expandedSections['tasks'] ? '▼' : '▶' }}</span>
         </div>
@@ -93,10 +93,10 @@
                     <span class="sidebar-label">Assign New Task</span>
                 </div>
             </div>
-        }
+        } -->
 
         <!-- Leaves Section -->
-        <div class="sidebar-section-title" (click)="toggleSection('leaves')">
+        <!-- <div class="sidebar-section-title" (click)="toggleSection('leaves')">
             📅 LEAVES
             <span class="section-arrow">{{ expandedSections['leaves'] ? '▼' : '▶' }}</span>
         </div>
@@ -118,10 +118,10 @@
                     <span class="sidebar-label">Leave History</span>
                 </div>
             </div>
-        }
+        } -->
 
         <!-- Attendance Section -->
-        <div class="sidebar-section-title" (click)="toggleSection('attendance')">
+        <!-- <div class="sidebar-section-title" (click)="toggleSection('attendance')">
             ⏰ ATTENDANCE
             <span class="section-arrow">{{ expandedSections['attendance'] ? '▼' : '▶' }}</span>
         </div>
@@ -137,7 +137,7 @@
         }
 
     </div>
-</div>
+</div> -->
 
 <!-- ===== MAIN CONTENT ===== -->
 <div class="container mt-4">
@@ -911,7 +911,7 @@
 
 <!-- ===== ASSIGN TASK MODAL ===== -->
 @if (showTaskModal) {
-    <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-overlay" (click)="showTaskModal = false">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Assign Task</h4>
             @if (taskError) { <div class="alert alert-danger">{{ taskError }}</div> }
@@ -946,14 +946,14 @@
             <button class="btn btn-success w-100" (click)="assignTask()" [disabled]="assigning">
                 {{ assigning ? 'Assigning...' : 'Assign' }}
             </button>
-            <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
+            <button class="btn btn-secondary w-100 mt-2" (click)="showTaskModal = false">Cancel</button>
         </div>
     </div>
 }
 
 <!-- ===== EDIT PROFILE MODAL ===== -->
-@if (showEditProfile) {
-    <div class="modal-overlay" (click)="closeModals()">
+<!-- @if (showEditProfile) { -->
+    <!-- <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Edit Profile</h4>
             @if (editErrorMessage) { <div class="alert alert-danger">{{ editErrorMessage }}</div> }
@@ -976,12 +976,12 @@
             </button>
             <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
         </div>
-    </div>
-}
+    </div> -->
+<!-- } -->
 
 <!-- ===== CHANGE PASSWORD MODAL ===== -->
-@if (showChangePassword) {
-    <div class="modal-overlay" (click)="closeModals()">
+<!-- @if (showChangePassword) { -->
+    <!-- <div class="modal-overlay" (click)="closeModals()">
         <div class="modal-box" (click)="$event.stopPropagation()">
             <h4 class="mb-3">Change Password</h4>
             @if (editErrorMessage) { <div class="alert alert-danger">{{ editErrorMessage }}</div> }
@@ -999,5 +999,5 @@
             </button>
             <button class="btn btn-secondary w-100 mt-2" (click)="closeModals()">Cancel</button>
         </div>
-    </div>
-}
+    </div> -->
+<!-- } -->
